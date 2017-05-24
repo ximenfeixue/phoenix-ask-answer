@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+	http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+	<bean id="jedisPoolConfig" class="redis.clients.jedis.JedisPoolConfig">
+		<property name="maxIdle" value="50" />
+		<property name="testOnBorrow" value="true" />
+	</bean>
+
+	<bean id="jedis.shardInfo" class="redis.clients.jedis.JedisShardInfo">
+		<constructor-arg index="0" value="${redis.host}" />
+		<constructor-arg index="1" value="${redis.port}" />
+	</bean>
+
+	<bean id="jedisPool" class="redis.clients.jedis.ShardedJedisPool">
+		<constructor-arg index="0" ref="jedisPoolConfig" />
+		<constructor-arg index="1">
+			<list>
+				<ref bean="jedis.shardInfo" />
+			</list>
+		</constructor-arg>
+	</bean>
+	<bean id="cache" class="com.ginkgocap.ywxt.cache.Cache">
+		<property name="jedisPool" ref="jedisPool"></property>
+        <property name="local" value="true"></property>
+        <property name="localTTL" value="86400"></property>
+	</bean>
+</beans>
