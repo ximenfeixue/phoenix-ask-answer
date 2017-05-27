@@ -29,19 +29,19 @@
             <groupId>com.gintong.frame</groupId>
             <artifactId>phoenix-frame-util</artifactId>
         </dependency>
-        <dependency>
+       <!-- <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
         </dependency>
         <dependency>
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>
-        </dependency>
+        </dependency>-->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
         </dependency>
-        <dependency>
+        <!--<dependency>
             <groupId>com.ginkgocap.ywxt</groupId>
             <artifactId>phoenix-entire-api</artifactId>
             <exclusions>
@@ -50,7 +50,7 @@
                     <groupId>redis.clients</groupId>
                 </exclusion>
             </exclusions>
-        </dependency>
+        </dependency>-->
         <dependency>
             <groupId>com.ginkgocap.parasol</groupId>
             <artifactId>parasol-common-provider</artifactId>
@@ -179,19 +179,34 @@
             <id>dev</id>
             <properties>
                 <!-- database -->
-                <jdbc.url>jdbc:mysql://192.168.101.131:3306/parasol_directory?createDatabaseIfNotExist=true&amp;amp;useUnicode=true&amp;amp;characterEncoding=utf8&amp;amp;autoReconnect=true</jdbc.url>
-                <jdbc.username>zhangwei</jdbc.username>
-                <jdbc.password>zhangwei</jdbc.password>
-                <!-- memcached -->
-                <memcached.list1.ip>192.168.101.131</memcached.list1.ip>
-                <memcached.list1.port>11211</memcached.list1.port>
-                <memcached.object1.ip>192.168.101.131</memcached.object1.ip>
-                <memcached.object1.port>11211</memcached.object1.port>
+                <mongodb.address>192.168.101.131:27017</mongodb.address>
+                <mongodb.database>askAnswer</mongodb.database>
+                <redis.host>192.168.101.131</redis.host>
+                <redis.port>6379</redis.port>
+                <log4j.level>debug</log4j.level>
                 <!-- dubbo -->
                 <dubbo.application.name>${project.artifactId}</dubbo.application.name>
                 <dubbo.registry.address>zookeeper://192.168.101.131:2181?client=zkclient</dubbo.registry.address>
                 <dubbo.protocol.name>dubbo</dubbo.protocol.name>
-                <dubbo.protocol.port>20885</dubbo.protocol.port>
+                <dubbo.protocol.port>20666</dubbo.protocol.port>
+                <user.cache.expiredTime>86400</user.cache.expiredTime>
+            </properties>
+        </profile>
+        <profile>
+            <id>testOnline</id>
+            <properties>
+                <!-- database -->
+                <mongodb.address>192.168.120.133:27017</mongodb.address>
+                <mongodb.database>askAnswer</mongodb.database>
+                <redis.host>192.168.101.42</redis.host>
+                <redis.port>6379</redis.port>
+                <log4j.level>debug</log4j.level>
+                <!-- dubbo -->
+                <dubbo.application.name>${project.artifactId}</dubbo.application.name>
+                <dubbo.registry.address>zookeeper://192.168.101.15:2181?client=zkclient</dubbo.registry.address>
+                <dubbo.protocol.name>dubbo</dubbo.protocol.name>
+                <dubbo.protocol.port>20666</dubbo.protocol.port>
+                <user.cache.expiredTime>86400</user.cache.expiredTime>
             </properties>
         </profile>
     </profiles>

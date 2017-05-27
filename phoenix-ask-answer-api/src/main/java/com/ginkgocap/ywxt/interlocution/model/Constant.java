@@ -6,7 +6,8 @@ package com.ginkgocap.ywxt.interlocution.model;
 public class Constant {
 
     public static class Collection {
-        public final static String Interlocution = "interlocution";
+        public final static String QUESTION = "question";
+        public final static String ANSWER = "answer";
     }
 
     public static class JsonNode {
@@ -19,6 +20,11 @@ public class Constant {
     public final static String _ID = "_id";
     public final static String type = "type";
     public final static String WEB ="web";
-    public final static long APPID = 1l;
-    public final static long TYPEID = 12l;
+    public final static long APP_ID = 1l;
+    public final static long TYPE_ID = 12l;
+    public final static String CREATE_TIME = "createTime";
+    public final static String TOP = "top";
+    public final static String READ_COUNT = "readCount";
+    public final static String PRAISE_COUNT = "praiseCount";
+
 }

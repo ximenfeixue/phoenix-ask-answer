@@ -8,4 +8,5 @@
 
 	<dubbo:reference id="askAnswerCommonService" interface="com.ginkgocap.ywxt.interlocution.service.AskAnswerCommonService" version="1.0.0"/>
 	<dubbo:reference id="askService" interface="com.ginkgocap.ywxt.interlocution.service.AskService"  version="1.0.0"/>
+	<dubbo:reference id="answerService" interface="com.ginkgocap.ywxt.interlocution.service.AnswerService"  version="1.0.0"/>
 </beans>

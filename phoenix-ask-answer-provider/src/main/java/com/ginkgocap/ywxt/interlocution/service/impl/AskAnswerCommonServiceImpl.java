@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Created by Wang fei on 2017/5/23.
  */
-@Service("interlocutionCommonService")
+@Service("askAnswerCommonService")
 public class AskAnswerCommonServiceImpl implements AskAnswerCommonService, InitializingBean {
 
     private final Logger logger = LoggerFactory.getLogger(AskAnswerCommonServiceImpl.class);

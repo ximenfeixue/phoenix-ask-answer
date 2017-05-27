@@ -1,5 +1,7 @@
 package com.ginkgocap.ywxt.interlocution.model;
 
+import org.springframework.data.annotation.Transient;
+
 import java.io.Serializable;
 
 /**
@@ -10,13 +12,23 @@ public class Praise implements Serializable{
     private static final long serialVersionUID = 8746712290836351492L;
 
     private long id;
-    /** 回答者 id **/
+    /**
+     * 回答者 id
+     */
     private long answerId;
-    /** 赞赏者 id **/
+    /**
+     * 点赞者 id
+     */
     private long admirerId;
-    /** 赞赏者 名字**/
+    /**
+     * 点赞者 名字
+     */
+    @Transient
     private String admirerName;
-    /** 赞赏者 头像**/
+    /**
+     * 点赞者 头像
+     */
+    @Transient
     private String admirerPicPath;
 
     public long getAnswerId() {
@@ -49,5 +61,13 @@ public class Praise implements Serializable{
 
     public void setAdmirerPicPath(String admirerPicPath) {
         this.admirerPicPath = admirerPicPath;
+    }
+
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
     }
 }

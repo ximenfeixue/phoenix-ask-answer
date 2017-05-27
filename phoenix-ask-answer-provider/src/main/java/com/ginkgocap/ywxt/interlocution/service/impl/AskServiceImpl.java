@@ -7,21 +7,23 @@ import com.gintong.frame.util.dto.CommonResultCode;
 import com.gintong.frame.util.dto.InterfaceResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * Created by Wang fei on 2017/5/23.
  */
-@Service("askServiceImpl")
+@Service("askService")
 public class AskServiceImpl implements AskService {
 
     private final Logger logger = LoggerFactory.getLogger(AskServiceImpl.class);
 
-    @Resource
+    @Autowired
     private AskMongoDao askMongoDao;
 
+    @Override
     public InterfaceResult insert(Question question) {
 
         Question saveQuestion = null;
@@ -34,5 +36,28 @@ public class AskServiceImpl implements AskService {
             return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_DB_OPERATION_EXCEPTION);
         }
         return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SUCCESS, id);
+    }
+
+    @Override
+    public List<Question> getAllAskAnswerByStatus(byte status, int start, int size) throws Exception {
+
+        List<Question> questionList = askMongoDao.getAllAskAnswerByStatus(status, start, size);
+
+        return questionList;
+    }
+
+    @Override
+    public Question getQuestionById(long id) throws Exception {
+
+        Question question = askMongoDao.getQuestionById(id);
+
+        return question;
+    }
+    @Override
+    public Question getQuestionByIdAndUpdateReadCount(long id) throws Exception {
+
+        Question question = askMongoDao.getQuestionById(id);
+
+        return null;
     }
 }

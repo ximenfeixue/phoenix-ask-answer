@@ -19,6 +19,17 @@
         <jetty.version>8.1.15.v20140411</jetty.version>
         <jetty-jsp.version>2.2.0.v201112011158</jetty-jsp.version>
     </properties>
+    <!-- 上传到 maven 私服 distributionManagement-->
+    <distributionManagement>
+        <snapshotRepository>
+            <id>Snapshots</id>
+            <url>http://192.168.101.89:8081/nexus/content/repositories/snapshots/</url>
+        </snapshotRepository>
+        <repository>
+            <id>Releases</id>
+            <url>http://192.168.101.89:8081/nexus/content/repositories/releases/</url>
+        </repository>
+    </distributionManagement>
     <dependencies>
         <dependency>
             <groupId>com.ginkgocap.ywxt</groupId>
@@ -51,7 +62,17 @@
                     <artifactId>log4j-over-slf4j</artifactId>
                     <groupId>org.slf4j</groupId>
                 </exclusion>
+                <exclusion>
+                    <groupId>org.hibernate</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
             </exclusions>
+        </dependency>
+        <!-- 为了解决  hibernate-validator-5.x.x 不兼容validation-api-1.0.x-->
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-validator</artifactId>
+            <version>4.3.1.Final</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -182,6 +203,18 @@
                 <dubbo.registry.address>zookeeper://192.168.101.131:2181?client=zkclient</dubbo.registry.address>
                 <dubbo.protocol.name>dubbo</dubbo.protocol.name>
                 <redis.host>192.168.101.131</redis.host>
+                <redis.port>6379</redis.port>
+                <user.cache.expiredTime>86400</user.cache.expiredTime>
+            </properties>
+        </profile>
+        <profile>
+            <id>testOnline</id>
+            <properties>
+                <!-- dubbo -->
+                <dubbo.application.name>${project.artifactId}</dubbo.application.name>
+                <dubbo.registry.address>zookeeper://192.168.101.15:2181?client=zkclient</dubbo.registry.address>
+                <dubbo.protocol.name>dubbo</dubbo.protocol.name>
+                <redis.host>192.168.101.42</redis.host>
                 <redis.port>6379</redis.port>
                 <user.cache.expiredTime>86400</user.cache.expiredTime>
             </properties>

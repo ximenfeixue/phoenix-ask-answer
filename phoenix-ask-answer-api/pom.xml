@@ -25,6 +25,10 @@
                     <artifactId>jedis</artifactId>
                     <groupId>redis.clients</groupId>
                 </exclusion>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>

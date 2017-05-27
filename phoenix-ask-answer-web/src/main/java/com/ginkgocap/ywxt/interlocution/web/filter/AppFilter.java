@@ -6,6 +6,7 @@ import com.ginkgocap.ywxt.interlocution.utils.CommonUtil;
 import com.ginkgocap.ywxt.interlocution.utils.MyStringUtils;
 import com.ginkgocap.ywxt.interlocution.utils.RedisKeyUtils;
 import com.ginkgocap.ywxt.user.model.User;
+import com.ginkgocap.ywxt.util.Encodes;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +16,7 @@ import org.springframework.web.context.support.WebApplicationContextUtils;
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.BufferedReader;
 import java.io.IOException;
 
 public class AppFilter implements Filter {
@@ -126,6 +128,104 @@ public class AppFilter implements Filter {
 		chain.doFilter(request, response);
 		CommonUtil.setRequestIsFromWebFlag(false);
 	}
+	/*public void doFilter(ServletRequest request, ServletResponse response,
+						 FilterChain chain) throws IOException, ServletException {
+		HttpServletRequest req = (HttpServletRequest) request;
+		HttpServletResponse res = (HttpServletResponse) response;
+		String s = req.getHeader("s");
+		logger.info("params s is: " + s);
+		boolean requestIsFromWeb = Constant.WEB.equals(s);
+		if (requestIsFromWeb) {
+			CommonUtil.setRequestIsFromWebFlag(true);
+		}
+
+		Long userId = 0L;
+		User user = getUser(req);
+		if (null != user && user.getId() > 0) {
+			userId = user.getId();
+			request.setAttribute("sessionUser", user);
+		}
+
+		String url = req.getRequestURI();
+		// cookies不为空，则清除
+		if (url.contains("file/") || url.contains("update/bindEmailStatus")
+				|| url.contains("/organ/uploadIdCardImg.json")) {
+			chain.doFilter(request, response);
+			CommonUtil.setRequestIsFromWebFlag(false);
+			return;
+		}
+		boolean loginFlag = true;
+		for (String excludedUrl : excludedUrlArray) {
+			if (url.contains(MyStringUtils.replaceSpecial(excludedUrl))) {
+				loginFlag = false;
+				break;
+			}
+		}
+
+		if (requestIsFromWeb) {
+			for (String excludedUrl : webExcludedUrl) {
+				if (url.contains(excludedUrl)) {
+					loginFlag = false;
+					break;
+				}
+			}
+		} else {
+			if (url.contains("mobileApp/version.json")) {
+				loginFlag = false;
+			}
+		}
+
+		if (loginFlag && null == user) {
+			response.setCharacterEncoding("utf-8");
+			res.setHeader("errorCode", "-1");
+			try {
+				String str = Encodes.encodeBase64("用户长时间未操作或已过期,请重新登录".getBytes());
+				System.out.println("用户长时间未操作或已过期");
+				res.setHeader("errorMessage", str);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			response.getWriter().write("{\"notification\":{\"notifCode\": \"1000\",\"notifInfo\": \"用户长时间未操作或已过期,请重新登录\"}}");
+			CommonUtil.setRequestIsFromWebFlag(false);
+			return;
+		}
+
+		// 敏感词过滤
+		BufferedReader reader = request.getReader();
+		String line = null;
+		StringBuffer jsonIn = new StringBuffer();
+		while ((line = reader.readLine()) != null) {
+			jsonIn.append(line);
+		}
+		String result = jsonIn.toString();
+		if (result.equals("")) {
+			result = request.getParameter("json");
+		}
+		String requestJson = result;
+		reader.close();
+
+		String sessionId = ((HttpServletRequest) request)
+				.getHeader("sessionID");
+		System.out
+				.println("-----------------------------------request received--------------------------------------------------------------");
+		System.out.println("URL:"
+				+ ((HttpServletRequest) request).getRequestURL() + "?"
+				+ ((HttpServletRequest) request).getQueryString() + "\nUserId:"
+				+ userId + "\nSessionId:" + sessionId);
+		System.out.println("json:" + requestJson + "," + sessionId);
+
+		if (requestJson != null && !"".equals(requestJson)) {
+			request.setAttribute("requestJson", requestJson);
+			chain.doFilter(request, response);
+			CommonUtil.setRequestIsFromWebFlag(false);
+			return;
+		} else {
+			request.setAttribute("requestJson", "{}");
+			chain.doFilter(request, response);
+			CommonUtil.setRequestIsFromWebFlag(false);
+			return;
+		}
+	}*/
 
 	@Override
 	public void init(FilterConfig config) throws ServletException {

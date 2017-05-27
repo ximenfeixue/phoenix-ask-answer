@@ -1,5 +1,7 @@
 package com.ginkgocap.ywxt.interlocution.model;
 
+import org.springframework.data.annotation.Transient;
+
 import java.io.Serializable;
 
 /**
@@ -17,8 +19,10 @@ public class Answer implements Serializable{
     /** 回答者 id **/
     private long answererId;
     /** 回答者 名字 **/
+    @Transient
     private String answererName;
     /** 回答者 头像 **/
+    @Transient
     private String answererPicPath;
     /** 答案 创建时间 **/
     private long createTime;
@@ -26,6 +30,8 @@ public class Answer implements Serializable{
     private long updateTime;
     /** 点赞数 **/
     private int praiseCount;
+    /** 问题 置顶 0：非置顶 1：置顶 **/
+    private byte top = 0;
 
     public long getId() {
         return id;
@@ -97,5 +103,13 @@ public class Answer implements Serializable{
 
     public void setPraiseCount(int praiseCount) {
         this.praiseCount = praiseCount;
+    }
+
+    public byte getTop() {
+        return top;
+    }
+
+    public void setTop(byte top) {
+        this.top = top;
     }
 }

@@ -62,7 +62,7 @@ public abstract class BaseController {
 		String result = getJsonIn(request);
 		return result;
 	}
-	protected User getJTNUser(HttpServletRequest request) throws Exception {
+	protected User getJTNUser(HttpServletRequest request) {
 		User user = getUser(request);
 
 		if(null == user){
