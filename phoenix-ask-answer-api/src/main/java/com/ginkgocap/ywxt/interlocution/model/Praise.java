@@ -13,9 +13,13 @@ public class Praise implements Serializable{
 
     private long id;
     /**
-     * 回答者 id
+     * 答案 id
      */
     private long answerId;
+    /**
+     * 回答者 id
+     */
+    private long answererId;
     /**
      * 点赞者 id
      */
@@ -30,6 +34,10 @@ public class Praise implements Serializable{
      */
     @Transient
     private String admirerPicPath;
+    /**
+     * 点赞时间
+     */
+    private long admireTime;
 
     public long getAnswerId() {
         return answerId;
@@ -69,5 +77,21 @@ public class Praise implements Serializable{
 
     public void setId(long id) {
         this.id = id;
+    }
+
+    public long getAdmireTime() {
+        return admireTime;
+    }
+
+    public void setAdmireTime(long admireTime) {
+        this.admireTime = admireTime;
+    }
+
+    public long getAnswererId() {
+        return answererId;
+    }
+
+    public void setAnswererId(long answererId) {
+        this.answererId = answererId;
     }
 }

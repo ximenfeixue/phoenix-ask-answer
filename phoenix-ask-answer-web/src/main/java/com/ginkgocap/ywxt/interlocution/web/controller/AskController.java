@@ -130,7 +130,7 @@ public class AskController extends BaseController{
         try {
             base = askServiceLocal.getQuestionById(questionId, start, size);
         } catch (Exception e) {
-
+            return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
         }
         if (base == null || base.getQuestion() == null) {
             result = InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_DB_OPERATION_EXCEPTION);
@@ -146,7 +146,7 @@ public class AskController extends BaseController{
         return InterfaceResult.getSuccessInterfaceResultInstance(base);
     }
 
-
+    //@RequestMapping(value = "")
 
     private InterfaceResult create(DataBase base, User user) {
 

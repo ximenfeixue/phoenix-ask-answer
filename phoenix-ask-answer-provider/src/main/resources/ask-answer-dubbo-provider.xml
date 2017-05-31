@@ -13,4 +13,6 @@
     <dubbo:service  interface="com.ginkgocap.ywxt.interlocution.service.AskAnswerCommonService" ref="askAnswerCommonService" version="1.0.0"/>
     <dubbo:service  interface="com.ginkgocap.ywxt.interlocution.service.AskService" ref="askService" version="1.0.0"/>
     <dubbo:service  interface="com.ginkgocap.ywxt.interlocution.service.AnswerService" ref="answerService" version="1.0.0"/>
+    <dubbo:service interface="com.ginkgocap.ywxt.interlocution.service.DataSyncService" ref="dataSyncService" version="1.0.0"/>
+    <dubbo:service interface="com.ginkgocap.ywxt.interlocution.service.PraiseService" ref="praiseService" version="1.0.0"/>
 </beans>

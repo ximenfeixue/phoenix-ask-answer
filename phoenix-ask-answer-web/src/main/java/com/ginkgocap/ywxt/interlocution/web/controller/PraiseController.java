@@ -2,12 +2,10 @@ package com.ginkgocap.ywxt.interlocution.web.controller;
 
 import com.ginkgocap.parasol.util.JsonUtils;
 import com.ginkgocap.ywxt.interlocution.model.Answer;
-import com.ginkgocap.ywxt.interlocution.model.AnswerBase;
 import com.ginkgocap.ywxt.interlocution.model.DataSync;
-import com.ginkgocap.ywxt.interlocution.service.AnswerService;
-import com.ginkgocap.ywxt.interlocution.service.DataSyncService;
+import com.ginkgocap.ywxt.interlocution.model.Praise;
+import com.ginkgocap.ywxt.interlocution.service.PraiseService;
 import com.ginkgocap.ywxt.interlocution.utils.AskAnswerJsonUtils;
-import com.ginkgocap.ywxt.interlocution.utils.MyStringUtils;
 import com.ginkgocap.ywxt.interlocution.web.Task.DataSyncTask;
 import com.ginkgocap.ywxt.user.model.User;
 import com.ginkgocap.ywxt.user.service.UserService;
@@ -23,126 +21,122 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
-import javax.persistence.criteria.CriteriaBuilder;
 import javax.servlet.http.HttpServletRequest;
-import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Created by Wang fei on 2017/5/27.
+ * Created by Wang fei on 2017/5/31.
  */
 @RestController
-@RequestMapping("/answer")
-public class AnswerController extends BaseController{
+@RequestMapping("/praise")
+public class PraiseController extends BaseController{
 
-    private final Logger logger = LoggerFactory.getLogger(AnswerController.class);
-
-    @Resource
-    private AnswerService answerService;
+    private final Logger logger = LoggerFactory.getLogger(PraiseController.class);
 
     @Resource
-    private UserService userService;
+    private PraiseService praiseService;
 
     @Resource
     private DataSyncTask dataSyncTask;
 
+    @Resource
+    private UserService userService;
+
     /**
-     * 创建 答案
+     * 创建点赞
      * @param request
      * @return
      */
     @RequestMapping(method = RequestMethod.POST)
     public InterfaceResult create(HttpServletRequest request) {
 
-        String requestJson = null;
-        Answer answer = null;
-        Long id = null;
         InterfaceResult result = null;
+        Praise praise = null;
         User user = this.getUser(request);
         if (user == null) {
             return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PERMISSION_EXCEPTION);
         }
-
         try {
-            requestJson = this.getBodyParam(request);
-            answer = (Answer) JsonUtils.jsonToBean(requestJson, Answer.class);
+            String requestJson = this.getBodyParam(request);
+            praise = (Praise)JsonUtils.jsonToBean(requestJson, Praise.class);
         } catch (Exception e) {
             e.printStackTrace();
             return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_EXCEPTION);
         }
-        answer.setAnswererId(user.getId());
         try {
-            result = answerService.insert(answer);
+            result = praiseService.create(praise);
+
         } catch (Exception e) {
-            logger.error("invoke answerService failed : method :[ create ]");
+            logger.error("invoke praiseService failed : method :[ create ]");
             return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
         }
-        User dbUser = null;
-        try {
-            dbUser = userService.selectByPrimaryKey(user.getId());
-        } catch (Exception e) {
-            logger.error("invoke userService failed !please check userService");
-        }
-        // WILL do send message
         if (result.getResponseData() != null && (Long)result.getResponseData() > 0) {
-            if (user.getId() != answer.getToId()) {
-                MessageNotify message = createMessageNotify(answer, dbUser);
+            User dbUser = null;
+            try {
+                dbUser = userService.selectByPrimaryKey(user.getId());
+            } catch (Exception e) {
+                logger.error("invoke userService failed !please check userService");
+            }
+            if (user.getId() != praise.getAnswerId()) {
+                MessageNotify message = createMessageNotify(praise, dbUser);
                 dataSyncTask.saveDataNeedSync(new DataSync(0l, message));
             } else {
-                logger.info("respond self question ! so skip create message!");
+                logger.info("praise self answer! so skip send message");
             }
         }
         return result;
     }
 
     /**
-     * 答案详情
+     * 取消点赞
      * @param request
+     * @param answerId
      * @return
      */
-    @RequestMapping(value = "/{id}/{start}/{size}", method = RequestMethod.GET)
-    public InterfaceResult detail(HttpServletRequest request, @PathVariable long id,
-                                  @PathVariable int start, @PathVariable int size) {
+    @RequestMapping(value = "/{answerId}", method = RequestMethod.DELETE)
+    public InterfaceResult delete(HttpServletRequest request, @PathVariable long answerId) {
 
         InterfaceResult result = null;
-        AnswerBase base = null;
+        User user = this.getUser(request);
+        if (user == null) {
+            return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PERMISSION_EXCEPTION);
+        }
         try {
-            //result = answerServiceLocal.getAnswer(id, start, size);
+            result = praiseService.delete(answerId);
 
         } catch (Exception e) {
+            logger.error("invoke praise service failed! please check service");
             return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
-        }
-        if (result.getResponseData() == null) {
-            return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_DB_OPERATION_EXCEPTION);
         }
         return result;
     }
 
-    private MessageNotify createMessageNotify(Answer answer, User user) {
+    private MessageNotify createMessageNotify(Praise praise, User user) {
 
-        if (answer == null) {
-            logger.error("answer is null! so skip createMessage!");
+        if (praise == null) {
+            logger.error("praise is null! so skip createMessage!");
             return null;
         }
         MessageNotify message = new MessageNotify();
-        message.setTitle("回答了你的问题");
+        message.setTitle("赞了你的回答");
         message.setFromId(user.getId());
         message.setFromName(user.getName());
         message.setPicPath(user.getPicPath());
         //message.setType(MessageNotifyType.E);
-        message.setType(16);
-        message.setToId(answer.getToId());
-        message.setContent(convertToJson(answer.getQuestionId()));
+        message.setType(17);
+        message.setToId(praise.getAnswererId());
+        message.setContent(convertToJson(praise.getAnswerId()));
         final short virtual = user.isVirtual() ? (short) 1 : (short) 0;
         message.setVirtual(virtual);
 
         return message;
+
     }
 
-    private String convertToJson(long questionId) {
+    private String convertToJson(long answerId) {
 
-        Map<String, Object> map = mapContent(questionId);
+        Map<String, Object> map = mapContent(answerId);
         return AskAnswerJsonUtils.writeObjectToJson(map);
     }
 
@@ -151,8 +145,7 @@ public class AnswerController extends BaseController{
         Map<String, Object> map = new HashMap<String, Object>(2);
         map.put("id", questionId);
         //map.put("type", MessageNotifyType.EKnowledge.value());
-        map.put("type", 16);
+        map.put("type", 17);
         return map;
     }
-
 }

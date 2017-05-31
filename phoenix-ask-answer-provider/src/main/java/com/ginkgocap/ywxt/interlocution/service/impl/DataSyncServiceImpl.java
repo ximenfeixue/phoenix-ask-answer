@@ -17,19 +17,19 @@ public class DataSyncServiceImpl implements DataSyncService{
     @Resource
     private DataSyncMongoDao dataSyncMongoDao;
 
-    @Service
+    @Override
     public long saveDataSync(DataSync data) {
 
         return dataSyncMongoDao.saveDataSync(data);
     }
 
-    @Service
+    @Override
     public boolean deleteDataSync(long id) {
 
         return dataSyncMongoDao.deleteDataSync(id);
     }
 
-    @Service
+    @Override
     public List<DataSync> getDataSyncList() {
 
         return dataSyncMongoDao.getDataSyncList();

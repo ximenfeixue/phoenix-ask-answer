@@ -2,12 +2,6 @@ package com.ginkgocap.ywxt.interlocution.web.Task;
 
 import com.ginkgocap.ywxt.interlocution.model.DataSync;
 import com.ginkgocap.ywxt.interlocution.service.DataSyncService;
-import com.ginkgocap.ywxt.knowledge.model.common.DataCollect;
-import com.ginkgocap.ywxt.knowledge.model.mobile.DataSync;
-import com.ginkgocap.ywxt.knowledge.service.DataSyncService;
-import com.ginkgocap.ywxt.knowledge.service.DynamicNewsServiceLocal;
-import com.ginkgocap.ywxt.knowledge.service.KnowledgeOtherService;
-import com.gintong.common.phoenix.permission.entity.Permission;
 import com.gintong.ywxt.im.model.MessageNotify;
 import com.gintong.ywxt.im.service.MessageNotifyService;
 import org.slf4j.Logger;
@@ -30,13 +24,7 @@ public class DataSyncTask implements Runnable {
     DataSyncService dataSyncService;
 
     @Autowired
-    DynamicNewsServiceLocal dynamicNewsServiceLocal;
-
-    @Autowired
     private MessageNotifyService messageNotifyService;
-
-    @Autowired
-    private KnowledgeOtherService knowledgeOtherService;
 
     private BlockingQueue<DataSync> dataSyncQueue = new ArrayBlockingQueue<DataSync>(MAX_QUEUE_NUM);
 
@@ -62,13 +50,14 @@ public class DataSyncTask implements Runnable {
                     Object data = dataSync.getData();
                     if (data != null) {
                         if (data instanceof MessageNotify) {
-                            sendMessageNotify((MessageNotify) data);
-                        } else if(data instanceof Permission) {
+                            result = sendMessageNotify((MessageNotify) data);
+                        }
+                        // 有时间 将 各种 count 也放到这里同步更新数据
+                        /*else if(data instanceof Permission) {
                             final Permission perm = (Permission)data;
                             final short privated = DataCollect.privated(perm, false);
                             knowledgeOtherService.updateCollectedKnowledgePrivate(perm.getResId(), -1, privated);
-                        }
-
+                        }*/
                     }
                     if (result) {
                         dataSyncService.deleteDataSync(dataSync.getId());
@@ -86,11 +75,11 @@ public class DataSyncTask implements Runnable {
         try {
             boolean result = messageNotifyService.sendMessageNotify(message);
             if (result) {
-                logger.info("send comment notify message success. fromId: " + message.getFromId() + " toId: " + message.getToId());
+                logger.info("send response answer notify message success. fromId: " + message.getFromId() + " toId: " + message.getToId());
             }
             return result;
         } catch (Exception ex) {
-            logger.error("send comment notify message failed. error: " + ex.getMessage());
+            logger.error("send response answer notify message failed. error: " + ex.getMessage());
         }
         return false;
     }

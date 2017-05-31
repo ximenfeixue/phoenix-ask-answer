@@ -9,6 +9,7 @@ public class Constant {
         public final static String QUESTION = "question";
         public final static String ANSWER = "answer";
         public final static String DATA_SYNC = "dataSync";
+        public final static String PRAISE = "praise";
     }
 
     public static class JsonNode {
@@ -27,5 +28,6 @@ public class Constant {
     public final static String TOP = "top";
     public final static String READ_COUNT = "readCount";
     public final static String PRAISE_COUNT = "praiseCount";
+    public final static String ANSWER_ID = "answerId";
 
 }

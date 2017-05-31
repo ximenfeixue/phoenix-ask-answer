@@ -1,5 +1,6 @@
 package com.ginkgocap.ywxt.interlocution.web.Task;
 
+import com.ginkgocap.parasol.util.DateUtil;
 import com.ginkgocap.ywxt.interlocution.model.DataSync;
 import com.ginkgocap.ywxt.interlocution.service.DataSyncService;
 import org.apache.commons.collections.CollectionUtils;
