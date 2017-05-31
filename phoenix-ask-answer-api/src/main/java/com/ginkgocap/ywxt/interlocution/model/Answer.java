@@ -12,26 +12,48 @@ public class Answer implements Serializable{
     private static final long serialVersionUID = 8746712290836358494L;
 
     private long id;
-    /** 问题 id **/
+    /**
+     * 问题 id
+     */
     private long questionId;
-    /** 答案 内容 **/
+    /**
+     * 答案 内容
+     */
     private String content;
-    /** 回答者 id **/
+    /**
+     * 回答者 id
+     */
     private long answererId;
-    /** 回答者 名字 **/
+    /**
+     * 回答者 名字
+     */
     @Transient
     private String answererName;
-    /** 回答者 头像 **/
+    /**
+     * 回答者 头像
+     */
     @Transient
     private String answererPicPath;
-    /** 答案 创建时间 **/
+    /**
+     * 答案 创建时间
+     */
     private long createTime;
-    /** 答案 修改时间 **/
+    /**
+     * 答案 修改时间
+     */
     private long updateTime;
-    /** 点赞数 **/
+    /**
+     * 点赞数
+     */
     private int praiseCount;
-    /** 问题 置顶 0：非置顶 1：置顶 **/
+    /**
+     * 问题 置顶 0：非置顶 1：置顶
+     */
     private byte top = 0;
+    /**
+     * 被发通知者 id
+     */
+    private long toId;
 
     public long getId() {
         return id;
@@ -111,5 +133,13 @@ public class Answer implements Serializable{
 
     public void setTop(byte top) {
         this.top = top;
+    }
+
+    public long getToId() {
+        return toId;
+    }
+
+    public void setToId(long toId) {
+        this.toId = toId;
     }
 }

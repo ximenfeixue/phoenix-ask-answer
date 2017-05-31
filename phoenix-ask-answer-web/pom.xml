@@ -18,6 +18,7 @@
     <properties>
         <jetty.version>8.1.15.v20140411</jetty.version>
         <jetty-jsp.version>2.2.0.v201112011158</jetty-jsp.version>
+        <im.version>2.0-SNAPSHOT</im.version>
     </properties>
     <!-- 上传到 maven 私服 distributionManagement-->
     <distributionManagement>
@@ -135,6 +136,12 @@
             <groupId>com.ginkgocap.parasol</groupId>
             <artifactId>parasol-util</artifactId>
             <version>1.0.3-SNAPSHOT</version>
+        </dependency>
+        <!-- 发送消息 -->
+        <dependency>
+            <groupId>com.gintong.ywxt</groupId>
+            <artifactId>phoenix-im-api</artifactId>
+            <version>${im.version}</version>
         </dependency>
     </dependencies>
     <repositories>

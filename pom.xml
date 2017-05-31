@@ -36,6 +36,7 @@
         <servlet-api.version>2.5</servlet-api.version>
         <parasol-associate-api.version>1.0.2-SNAPSHOT</parasol-associate-api.version>
         <parasol-common-provider.version>1.0.3-SNAPSHOT</parasol-common-provider.version>
+        <im.version>2.0-SNAPSHOT</im.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -131,6 +132,11 @@
                 <groupId>com.ginkgocap.parasol</groupId>
                 <artifactId>parasol-associate-api</artifactId>
                 <version>${parasol-associate-api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.gintong.ywxt</groupId>
+                <artifactId>phoenix-im-api</artifactId>
+                <version>${im.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

@@ -8,6 +8,7 @@ public class Constant {
     public static class Collection {
         public final static String QUESTION = "question";
         public final static String ANSWER = "answer";
+        public final static String DATA_SYNC = "dataSync";
     }
 
     public static class JsonNode {
