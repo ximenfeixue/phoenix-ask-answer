@@ -2,10 +2,7 @@ package com.ginkgocap.ywxt.interlocution.web.controller;
 
 import com.ginkgocap.parasol.associate.model.Associate;
 import com.ginkgocap.parasol.util.JsonUtils;
-import com.ginkgocap.ywxt.interlocution.model.Answer;
-import com.ginkgocap.ywxt.interlocution.model.DataBase;
-import com.ginkgocap.ywxt.interlocution.model.Question;
-import com.ginkgocap.ywxt.interlocution.model.QuestionBase;
+import com.ginkgocap.ywxt.interlocution.model.*;
 import com.ginkgocap.ywxt.interlocution.service.AskService;
 import com.ginkgocap.ywxt.interlocution.web.service.AskServiceLocal;
 import com.ginkgocap.ywxt.interlocution.web.service.AssociateServiceLocal;
@@ -174,7 +171,7 @@ public class AskController extends BaseController{
         for (Question question : questionList) {
             question.setUserName(user.getName());
             question.setPicPath(user.getPicPath());
-            Answer topAnswer = question.getTopAnswer();
+            PartAnswer topAnswer = question.getTopAnswer();
             if (topAnswer != null && topAnswer.getAnswererId() != 0) {
                 long answererId = topAnswer.getAnswererId();
                 User answerer = userService.selectByPrimaryKey(answererId);

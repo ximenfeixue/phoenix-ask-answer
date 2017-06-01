@@ -38,10 +38,12 @@ public class PraiseMongoDaoImpl implements PraiseMongoDao{
         return praise;
     }
 
-    public boolean delete(long answerId) throws Exception {
+    public boolean delete(long answerId, long userId) throws Exception {
 
         Praise praise = null;
-        Query query = new Query(Criteria.where(Constant.ANSWER_ID).is(answerId));
+        Query query = new Query();
+        query.addCriteria(Criteria.where(Constant.ANSWER_ID).is(answerId));
+        query.addCriteria(Criteria.where("admirerId").is(userId));
         try {
             praise = mongoTemplate.findAndRemove(query, Praise.class, Constant.Collection.PRAISE);
 

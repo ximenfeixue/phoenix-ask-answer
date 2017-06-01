@@ -1,8 +1,8 @@
 package com.ginkgocap.ywxt.interlocution.model;
 
 import org.springframework.data.annotation.Transient;
-
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * Created by wang fei on 2017/5/23.
@@ -54,6 +54,14 @@ public class Answer implements Serializable{
      * 被发通知者 id
      */
     private long toId;
+    /**
+     * 答案中 局部点赞过的人
+     */
+    private List<PartPraise> partPraiseList;
+    /**
+     * 答案 类型 0：文字 1：语音
+     */
+    private byte type;
 
     public long getId() {
         return id;
@@ -141,5 +149,21 @@ public class Answer implements Serializable{
 
     public void setToId(long toId) {
         this.toId = toId;
+    }
+
+    public List<PartPraise> getPartPraiseList() {
+        return partPraiseList;
+    }
+
+    public void setPartPraiseList(List<PartPraise> partPraiseList) {
+        this.partPraiseList = partPraiseList;
+    }
+
+    public byte getType() {
+        return type;
+    }
+
+    public void setType(byte type) {
+        this.type = type;
     }
 }

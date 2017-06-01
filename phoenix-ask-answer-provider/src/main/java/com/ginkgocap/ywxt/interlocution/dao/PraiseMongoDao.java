@@ -9,5 +9,5 @@ public interface PraiseMongoDao {
 
     Praise create(Praise praise) throws Exception;
 
-    boolean delete(long answerId) throws Exception;
+    boolean delete(long answerId, long userId) throws Exception;
 }

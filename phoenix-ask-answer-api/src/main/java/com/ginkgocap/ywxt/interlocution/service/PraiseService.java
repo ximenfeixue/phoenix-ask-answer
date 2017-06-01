@@ -10,5 +10,5 @@ public interface PraiseService {
 
     InterfaceResult create(Praise praise);
 
-    InterfaceResult delete(long answerId);
+    InterfaceResult delete(long answerId, long userId);
 }

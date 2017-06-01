@@ -36,11 +36,11 @@ public class PraiseServiceImpl implements PraiseService{
         return InterfaceResult.getSuccessInterfaceResultInstance(id);
     }
 
-    public InterfaceResult delete(long answerId) {
+    public InterfaceResult delete(long answerId, long userId) {
 
         InterfaceResult result = null;
         try {
-            boolean flag = praiseMongoDao.delete(answerId);
+            boolean flag = praiseMongoDao.delete(answerId, userId);
             result = InterfaceResult.getSuccessInterfaceResultInstance(flag);
         } catch (Exception e) {
             logger.error("delete praise failed!");

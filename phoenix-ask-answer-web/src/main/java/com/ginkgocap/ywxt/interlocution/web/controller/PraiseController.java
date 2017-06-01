@@ -3,7 +3,9 @@ package com.ginkgocap.ywxt.interlocution.web.controller;
 import com.ginkgocap.parasol.util.JsonUtils;
 import com.ginkgocap.ywxt.interlocution.model.Answer;
 import com.ginkgocap.ywxt.interlocution.model.DataSync;
+import com.ginkgocap.ywxt.interlocution.model.PartPraise;
 import com.ginkgocap.ywxt.interlocution.model.Praise;
+import com.ginkgocap.ywxt.interlocution.service.AnswerService;
 import com.ginkgocap.ywxt.interlocution.service.PraiseService;
 import com.ginkgocap.ywxt.interlocution.utils.AskAnswerJsonUtils;
 import com.ginkgocap.ywxt.interlocution.web.Task.DataSyncTask;
@@ -13,6 +15,8 @@ import com.gintong.frame.util.dto.CommonResultCode;
 import com.gintong.frame.util.dto.InterfaceResult;
 import com.gintong.ywxt.im.model.MessageNotify;
 import com.gintong.ywxt.im.model.MessageNotifyType;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,7 +26,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -42,6 +48,9 @@ public class PraiseController extends BaseController{
 
     @Resource
     private UserService userService;
+
+    @Resource
+    private AnswerService answerService;
 
     /**
      * 创建点赞
@@ -64,6 +73,7 @@ public class PraiseController extends BaseController{
             e.printStackTrace();
             return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_EXCEPTION);
         }
+        praise.setAdmirerId(user.getId());
         try {
             result = praiseService.create(praise);
 
@@ -72,11 +82,19 @@ public class PraiseController extends BaseController{
             return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
         }
         if (result.getResponseData() != null && (Long)result.getResponseData() > 0) {
+
             User dbUser = null;
             try {
                 dbUser = userService.selectByPrimaryKey(user.getId());
             } catch (Exception e) {
                 logger.error("invoke userService failed !please check userService");
+            }
+            // 更新答案表
+            try {
+                updateAnswer(dbUser, praise.getAnswerId());
+
+            } catch (Exception e) {
+                logger.error("invoke answer service failed! method :[ getAnswerById, updateAnswer ]");
             }
             if (user.getId() != praise.getAnswerId()) {
                 MessageNotify message = createMessageNotify(praise, dbUser);
@@ -103,7 +121,7 @@ public class PraiseController extends BaseController{
             return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PERMISSION_EXCEPTION);
         }
         try {
-            result = praiseService.delete(answerId);
+            result = praiseService.delete(answerId, user.getId());
 
         } catch (Exception e) {
             logger.error("invoke praise service failed! please check service");
@@ -147,5 +165,28 @@ public class PraiseController extends BaseController{
         //map.put("type", MessageNotifyType.EKnowledge.value());
         map.put("type", 17);
         return map;
+    }
+
+    private void updateAnswer(User user, long answerId) throws Exception{
+
+        Answer answer = answerService.getAnswerById(answerId);
+        if (answer != null) {
+
+            List<PartPraise> partPraiseList = answer.getPartPraiseList();
+            if (CollectionUtils.isEmpty(partPraiseList)) {
+                partPraiseList = new ArrayList<PartPraise>(3);
+            }
+            if (partPraiseList.size() < 3) {
+                PartPraise partPraise = new PartPraise();
+                partPraise.setAdmirerId(user.getId());
+                partPraise.setAdmirerName(user.getName());
+                partPraise.setAdmirerPicPath(user.getPicPath());
+                partPraiseList.add(partPraise);
+                InterfaceResult result = answerService.updateAnswer(answer);
+                if (!"0".equals(result.getNotification().getNotifCode())) {
+                    logger.error("update answer failed! please check answerService ,check provider log");
+                }
+            }
+        }
     }
 }

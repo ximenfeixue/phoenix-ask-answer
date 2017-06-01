@@ -53,11 +53,30 @@ public class AskServiceImpl implements AskService {
 
         return question;
     }
+
     @Override
     public Question getQuestionByIdAndUpdateReadCount(long id) throws Exception {
 
         Question question = askMongoDao.getQuestionById(id);
 
         return null;
+    }
+
+    @Override
+    public boolean updateStatus(long id) throws Exception {
+
+        return askMongoDao.updateStatus(id);
+    }
+
+    @Override
+    public InterfaceResult updateQuestion(Question question) {
+
+        try {
+            askMongoDao.update(question);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_DB_OPERATION_EXCEPTION);
+        }
+        return InterfaceResult.getSuccessInterfaceResultInstance(true);
     }
 }

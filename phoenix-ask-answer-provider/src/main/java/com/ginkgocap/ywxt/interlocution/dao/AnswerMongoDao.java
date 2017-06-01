@@ -24,4 +24,25 @@ public interface AnswerMongoDao {
      * @return
      */
     Answer insert(Answer answer) throws Exception;
+
+    /**
+     * 查询 答案 通过 问题 id 和 回答者 id
+     */
+    Answer getAnswerByQuestionAndAnswererId(long questionId, long answererId) throws Exception;
+
+    /**
+     * 查询答案 通过 id
+     * @param id
+     * @return
+     * @throws Exception
+     */
+    Answer getAnswerById(long id) throws Exception;
+
+    /**
+     * 修改答案
+     * @param answer
+     * @return
+     * @throws Exception
+     */
+    boolean updateAnswer(Answer answer) throws Exception;
 }

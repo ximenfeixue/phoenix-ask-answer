@@ -16,4 +16,8 @@ public interface AskMongoDao {
 
     Question getQuestionById(long id) throws Exception;
 
+    boolean updateStatus(long id) throws Exception;
+
+    void update(Question question) throws Exception;
+
 }

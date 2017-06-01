@@ -31,6 +31,9 @@ public class AskMongoDaoImpl implements AskMongoDao {
     @Autowired
     private AskAnswerCommonService askAnswerCommonService;
 
+    // 已回答状态
+    private static final byte ANSWER_STATUS = 1;
+
     public Question insert(Question question) throws Exception{
 
         if (question == null) {
@@ -74,6 +77,23 @@ public class AskMongoDaoImpl implements AskMongoDao {
         Query query = new Query(Criteria.where(Constant._ID).is(id));
 
         return mongoTemplate.findOne(query, Question.class, Constant.Collection.QUESTION);
+    }
+
+    public boolean updateStatus(long id) throws Exception {
+
+        Query query = new Query(Criteria.where(Constant._ID).is(id));
+        Update update = new Update();
+        update.set("status", ANSWER_STATUS);
+        Question question = mongoTemplate.findAndModify(query, update, Question.class, Constant.Collection.QUESTION);
+        return question != null;
+    }
+
+    public void update(Question question) throws Exception {
+
+        if (question == null) {
+            throw new IllegalArgumentException("question is null");
+        }
+        mongoTemplate.insert(question, Constant.Collection.QUESTION);
     }
 
     /*public Question addQuestionReadCount(Question question) {

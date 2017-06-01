@@ -59,4 +59,34 @@ public class AnswerMongoDaoImpl implements AnswerMongoDao {
         mongoTemplate.insert(answer, Constant.Collection.ANSWER);
         return answer;
     }
+
+    public Answer getAnswerByQuestionAndAnswererId(long questionId, long answererId) throws Exception {
+
+        if (questionId < 0 || answererId < 0) {
+            throw new IllegalArgumentException("questionId is error or answererId is error");
+        }
+        Query query = new Query();
+        query.addCriteria(Criteria.where("questionId").is(questionId));
+        query.addCriteria(Criteria.where("answererId").is(answererId));
+        return mongoTemplate.findOne(query, Answer.class, Constant.Collection.ANSWER);
+    }
+
+    public Answer getAnswerById(long id) throws Exception {
+
+        if (id < 0) {
+            throw new IllegalArgumentException("id is error");
+        }
+        Query query = new Query(Criteria.where(Constant._ID).is(id));
+
+        return mongoTemplate.findOne(query, Answer.class, Constant.Collection.ANSWER);
+    }
+
+    public boolean updateAnswer(Answer answer) throws Exception {
+
+        if (answer == null) {
+            throw new IllegalArgumentException("answer is null!");
+        }
+        mongoTemplate.insert(answer, Constant.Collection.ANSWER);
+        return true;
+    }
 }

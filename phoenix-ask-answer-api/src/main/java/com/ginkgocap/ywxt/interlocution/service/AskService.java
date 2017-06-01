@@ -41,4 +41,19 @@ public interface AskService {
      * @throws Exception
      */
     Question getQuestionByIdAndUpdateReadCount(long id) throws Exception;
+
+    /**
+     * 修改 问题 是否被答的状态
+     * @param id
+     * @return
+     * @throws Exception
+     */
+    boolean updateStatus(long id) throws Exception;
+
+    /**
+     * 修改 问题
+     * @param question
+     * @return
+     */
+    InterfaceResult updateQuestion(Question question);
 }

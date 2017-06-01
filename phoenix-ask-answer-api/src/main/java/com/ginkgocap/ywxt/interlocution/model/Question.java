@@ -70,7 +70,7 @@ public class Question implements Serializable{
      * 发现 首页中 与问题一起显示的 答案
      * @return
      */
-    private Answer topAnswer;
+    private PartAnswer topAnswer;
 
     public long getId() {
         return id;
@@ -184,11 +184,11 @@ public class Question implements Serializable{
         this.type = type;
     }
 
-    public Answer getTopAnswer() {
+    public PartAnswer getTopAnswer() {
         return topAnswer;
     }
 
-    public void setTopAnswer(Answer topAnswer) {
+    public void setTopAnswer(PartAnswer topAnswer) {
         this.topAnswer = topAnswer;
     }
 }
