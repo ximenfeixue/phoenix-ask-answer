@@ -38,6 +38,10 @@ public class Praise implements Serializable{
      * 点赞时间
      */
     private long admireTime;
+    /**
+     * 点赞者 类型 0：个人用户 1：组织用户
+     */
+    private short virtual;
 
     public long getAnswerId() {
         return answerId;
@@ -93,5 +97,13 @@ public class Praise implements Serializable{
 
     public void setAnswererId(long answererId) {
         this.answererId = answererId;
+    }
+
+    public short getVirtual() {
+        return virtual;
+    }
+
+    public void setVirtual(short virtual) {
+        this.virtual = virtual;
     }
 }

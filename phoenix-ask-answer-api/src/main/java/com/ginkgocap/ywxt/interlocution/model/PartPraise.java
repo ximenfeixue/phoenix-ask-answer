@@ -15,6 +15,10 @@ public class PartPraise implements Serializable{
     private String admirerName;
 
     private String admirerPicPath;
+    /**
+     * 点赞者 类型 0：个人用户 1：组织用户
+     */
+    private short virtual;
 
     public long getAdmirerId() {
         return admirerId;
@@ -38,5 +42,13 @@ public class PartPraise implements Serializable{
 
     public void setAdmirerPicPath(String admirerPicPath) {
         this.admirerPicPath = admirerPicPath;
+    }
+
+    public short getVirtual() {
+        return virtual;
+    }
+
+    public void setVirtual(short virtual) {
+        this.virtual = virtual;
     }
 }

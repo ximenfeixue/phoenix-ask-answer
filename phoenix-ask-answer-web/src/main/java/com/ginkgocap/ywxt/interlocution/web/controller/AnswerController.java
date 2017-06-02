@@ -115,7 +115,10 @@ public class AnswerController extends BaseController{
                 return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
             }
         }
+        // 补全 answer
         answer.setAnswererId(user.getId());
+        final short virtual = user.isVirtual() ? (short) 1 : (short) 0;
+        answer.setVirtual(virtual);
         try {
             result = answerService.insert(answer);
         } catch (Exception e) {

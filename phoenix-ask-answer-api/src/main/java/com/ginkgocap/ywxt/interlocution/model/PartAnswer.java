@@ -42,6 +42,14 @@ public class PartAnswer implements Serializable{
      */
     @Transient
     private String answererPicPath;
+    /**
+     * 回答者 类型 0：个人用户 1：组织用户
+     */
+    private short virtual;
+    /**
+     * 答案 是否置顶 0：非置顶 1：置顶
+     */
+    private byte top;
 
     public long getAnswerId() {
         return answerId;
@@ -97,5 +105,21 @@ public class PartAnswer implements Serializable{
 
     public void setAnswererPicPath(String answererPicPath) {
         this.answererPicPath = answererPicPath;
+    }
+
+    public short getVirtual() {
+        return virtual;
+    }
+
+    public void setVirtual(short virtual) {
+        this.virtual = virtual;
+    }
+
+    public byte getTop() {
+        return top;
+    }
+
+    public void setTop(byte top) {
+        this.top = top;
     }
 }

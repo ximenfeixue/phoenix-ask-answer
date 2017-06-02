@@ -62,6 +62,10 @@ public class Answer implements Serializable{
      * 答案 类型 0：文字 1：语音
      */
     private byte type;
+    /**
+     * 回答者 类型 0：个人用户 1：组织用户
+     */
+    private short virtual;
 
     public long getId() {
         return id;
@@ -165,5 +169,13 @@ public class Answer implements Serializable{
 
     public void setType(byte type) {
         this.type = type;
+    }
+
+    public short getVirtual() {
+        return virtual;
+    }
+
+    public void setVirtual(short virtual) {
+        this.virtual = virtual;
     }
 }

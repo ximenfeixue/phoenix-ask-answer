@@ -1,11 +1,9 @@
 package com.ginkgocap.ywxt.interlocution.web.controller;
 
 import com.ginkgocap.parasol.util.JsonUtils;
-import com.ginkgocap.ywxt.interlocution.model.Answer;
-import com.ginkgocap.ywxt.interlocution.model.DataSync;
-import com.ginkgocap.ywxt.interlocution.model.PartPraise;
-import com.ginkgocap.ywxt.interlocution.model.Praise;
+import com.ginkgocap.ywxt.interlocution.model.*;
 import com.ginkgocap.ywxt.interlocution.service.AnswerService;
+import com.ginkgocap.ywxt.interlocution.service.AskService;
 import com.ginkgocap.ywxt.interlocution.service.PraiseService;
 import com.ginkgocap.ywxt.interlocution.utils.AskAnswerJsonUtils;
 import com.ginkgocap.ywxt.interlocution.web.Task.DataSyncTask;
@@ -52,6 +50,9 @@ public class PraiseController extends BaseController{
     @Resource
     private AnswerService answerService;
 
+    @Resource
+    private AskService askService;
+
     /**
      * 创建点赞
      * @param request
@@ -62,6 +63,9 @@ public class PraiseController extends BaseController{
 
         InterfaceResult result = null;
         Praise praise = null;
+        Answer answer = null;
+        Question question = null;
+        List<PartAnswer> partAnswerList = null;
         User user = this.getUser(request);
         if (user == null) {
             return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PERMISSION_EXCEPTION);
@@ -73,7 +77,10 @@ public class PraiseController extends BaseController{
             e.printStackTrace();
             return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_EXCEPTION);
         }
+        // 补全 praise
         praise.setAdmirerId(user.getId());
+        final short virtual = user.isVirtual() ? (short) 1 : (short) 0;
+        praise.setVirtual(virtual);
         try {
             result = praiseService.create(praise);
 
@@ -81,6 +88,7 @@ public class PraiseController extends BaseController{
             logger.error("invoke praiseService failed : method :[ create ]");
             return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
         }
+        // 点赞 成功后 所做操作
         if (result.getResponseData() != null && (Long)result.getResponseData() > 0) {
 
             User dbUser = null;
@@ -89,13 +97,47 @@ public class PraiseController extends BaseController{
             } catch (Exception e) {
                 logger.error("invoke userService failed !please check userService");
             }
+            long answerId = praise.getAnswerId();
+
+            if (answerId < 1) {
+                logger.error("param : answerId < 1");
+                return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_EXCEPTION);
+            }
+
+            try {
+                answer = answerService.getAnswerById(answerId);
+
+            } catch (Exception e) {
+                logger.error("invoke answerService failed! method :[getAnswerById]");
+                return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
+            }
             // 更新答案表
             try {
-                updateAnswer(dbUser, praise.getAnswerId());
+                updateAnswer(dbUser, answer);
 
             } catch (Exception e) {
                 logger.error("invoke answer service failed! method :[ getAnswerById, updateAnswer ]");
             }
+            // 更新问题表
+            //updateQuestion()
+            try {
+                question = askService.getQuestionById(answer.getQuestionId());
+
+            } catch (Exception e) {
+                logger.error("invoke askService failed! method :[getQuestionById]");
+            }
+            if (question == null) {
+                result = InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_EXCEPTION);
+                result.getNotification().setNotifInfo("当前问题不存在或已删除");
+                return result;
+            }
+            try {
+                updateQuestion(question, answer);
+
+            } catch (Exception e) {
+                logger.error("invoke askService failed! update question");
+            }
+            // 发送 通知
             if (user.getId() != praise.getAnswerId()) {
                 MessageNotify message = createMessageNotify(praise, dbUser);
                 dataSyncTask.saveDataNeedSync(new DataSync(0l, message));
@@ -167,9 +209,8 @@ public class PraiseController extends BaseController{
         return map;
     }
 
-    private void updateAnswer(User user, long answerId) throws Exception{
+    private void updateAnswer(User user, Answer answer) throws Exception{
 
-        Answer answer = answerService.getAnswerById(answerId);
         if (answer != null) {
 
             List<PartPraise> partPraiseList = answer.getPartPraiseList();
@@ -181,12 +222,85 @@ public class PraiseController extends BaseController{
                 partPraise.setAdmirerId(user.getId());
                 partPraise.setAdmirerName(user.getName());
                 partPraise.setAdmirerPicPath(user.getPicPath());
+                final short virtual = user.isVirtual() ? (short) 1 : (short) 0;
+                partPraise.setVirtual(virtual);
                 partPraiseList.add(partPraise);
                 InterfaceResult result = answerService.updateAnswer(answer);
                 if (!"0".equals(result.getNotification().getNotifCode())) {
                     logger.error("update answer failed! please check answerService ,check provider log");
                 }
             }
+        }
+    }
+
+    private void updateQuestion(Question question, Answer answer) {
+
+        List<PartAnswer> partAnswerList = null;
+        List<PartAnswer> removeList = new ArrayList<PartAnswer>(1);
+        List<PartAnswer> addList = new ArrayList<PartAnswer>(1);
+        try {
+            partAnswerList = question.getTopAnswerList();
+            if (CollectionUtils.isEmpty(partAnswerList)) {
+                partAnswerList = new ArrayList<PartAnswer>();
+                PartAnswer partAnswer = convertAnswer(answer);
+                partAnswerList.add(partAnswer);
+            } else {
+                for (PartAnswer partAnswer : partAnswerList) {
+                    if (partAnswer == null)
+                        continue;
+                    byte top = partAnswer.getTop();
+                    // 最优答案 是非置顶的情况
+                    if (top == 0) {
+                        int praiseCount = partAnswer.getPraiseCount();
+                        if (answer.getPraiseCount() > praiseCount) {
+
+                            removeList.add(partAnswer);
+                            PartAnswer addPartAnswer = convertAnswer(answer);
+                            addList.add(addPartAnswer);
+                        }
+                    } else {
+                    // 最优答案 是置顶的不进行修改
+                    }
+                }
+                partAnswerList.removeAll(removeList);
+                partAnswerList.addAll(addList);
+            }
+            question.setTopAnswerList(partAnswerList);
+            for (PartAnswer topAnswer : question.getTopAnswerList()) {
+                if (topAnswer.getTop() == 0) {
+                    // 这种情况 只有 一个点赞数最多的 topAnswer 数据 ，所以遍历 list 进行修改操作，不会太影响性能
+                    // 修改问题 最优答案
+                    InterfaceResult result = askService.updateQuestion(question);
+                    if (!"0".equals(result.getNotification().getNotifCode())) {
+                        logger.error("update question failed! please check askService, check provider log");
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logger.error("invoke ask service failed! method: [updateQuestion]");
+        }
+    }
+
+    private PartAnswer convertAnswer(Answer answer) {
+
+        PartAnswer partAnswer = new PartAnswer();
+        partAnswer.setAnswererId(answer.getAnswererId());
+        partAnswer.setAnswerId(answer.getId());
+        partAnswer.setContent(answer.getContent());
+        partAnswer.setPraiseCount(answer.getPraiseCount());
+        partAnswer.setType(answer.getType());
+        partAnswer.setVirtual(answer.getVirtual());
+        return partAnswer;
+    }
+
+    private void updateTopQuestion(List<PartAnswer> partAnswerList, PartAnswer partAnswer, Question question) {
+
+        partAnswerList.add(partAnswer);
+        question.setTopAnswerList(partAnswerList);
+        // 修改问题 最优答案
+        InterfaceResult result = askService.updateQuestion(question);
+        if (!"0".equals(result.getNotification().getNotifCode())) {
+            logger.error("update question failed! please check askService, check provider log");
         }
     }
 }

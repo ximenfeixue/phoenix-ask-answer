@@ -3,6 +3,7 @@ package com.ginkgocap.ywxt.interlocution.model;
 import org.springframework.data.annotation.Transient;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * Created by wang fei on 2017/5/23.
@@ -68,9 +69,12 @@ public class Question implements Serializable{
     private int readCount = 0;
     /**
      * 发现 首页中 与问题一起显示的 答案
-     * @return
      */
-    private PartAnswer topAnswer;
+    private List<PartAnswer> topAnswerList;
+    /**
+     * 提问者 类型 0：个人用户 1：组织用户
+     */
+    private short virtual;
 
     public long getId() {
         return id;
@@ -184,11 +188,19 @@ public class Question implements Serializable{
         this.type = type;
     }
 
-    public PartAnswer getTopAnswer() {
-        return topAnswer;
+    public List<PartAnswer> getTopAnswerList() {
+        return topAnswerList;
     }
 
-    public void setTopAnswer(PartAnswer topAnswer) {
-        this.topAnswer = topAnswer;
+    public void setTopAnswerList(List<PartAnswer> topAnswerList) {
+        this.topAnswerList = topAnswerList;
+    }
+
+    public short getVirtual() {
+        return virtual;
+    }
+
+    public void setVirtual(short virtual) {
+        this.virtual = virtual;
     }
 }

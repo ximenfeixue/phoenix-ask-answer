@@ -159,6 +159,8 @@ public class AskController extends BaseController{
         InterfaceResult result = null;
         Question question = base.getQuestion();
         question.setUserId(user.getId());
+        final short virtual = user.isVirtual() ? (short) 1 : (short) 0;
+        question.setVirtual(virtual);
         //question.setUserName(user.getName());
         //question.setPicPath(user.getPicPath());
         try {
@@ -172,6 +174,8 @@ public class AskController extends BaseController{
 
     /**
      * 将发现 问答中 user 的 name 和 picPath 补全
+     *
+     * 以后系统 优化 将 user 的 name picPath 都放到 redis 中
      * @param questionList
      * @return
      */
@@ -182,15 +186,18 @@ public class AskController extends BaseController{
             User user = userService.selectByPrimaryKey(userId);
             question.setUserName(user.getName());
             question.setPicPath(user.getPicPath());
-            PartAnswer topAnswer = question.getTopAnswer();
-            if (topAnswer != null && topAnswer.getAnswererId() != 0) {
-                long answererId = topAnswer.getAnswererId();
-                User answerer = userService.selectByPrimaryKey(answererId);
-                if (answerer == null) {
-                    logger.error("invoke userService failed ! method selectByPrimaryKey , userId : [" + answererId + "]");
-                } else {
-                    topAnswer.setAnswererName(answerer.getName());
-                    topAnswer.setAnswererPicPath(answerer.getPicPath());
+            List<PartAnswer> topAnswerList = question.getTopAnswerList();
+
+            if (CollectionUtils.isNotEmpty(topAnswerList)) {
+                for (PartAnswer topAnswer : topAnswerList) {
+                    long answererId = topAnswer.getAnswererId();
+                    User answerer = userService.selectByPrimaryKey(answererId);
+                    if (answerer == null) {
+                        logger.error("invoke userService failed ! method selectByPrimaryKey , userId : [" + answererId + "]");
+                    } else {
+                        topAnswer.setAnswererName(answerer.getName());
+                        topAnswer.setAnswererPicPath(answerer.getPicPath());
+                    }
                 }
             }
         }
