@@ -18,8 +18,11 @@
 	<import resource="classpath:applicationContext-cache.xml" />
 	<import resource="classpath:web-cloud-dubbo.xml"/>
 	<import resource="classpath:applicationContext-redis.xml"/>
+
 	<import resource="classpath:metadata-associate-consumer.xml"/>
 	<context:component-scan base-package="com.ginkgocap.parasol.associate.service" annotation-config="true"/>
 	<import resource="classpath:im-dubbo-consumer.xml"/>
 	<context:component-scan base-package="com.gintong.ywxt.im.service" annotation-config="true"/>
+
+	<bean id="dataSyncScheduler" class="com.ginkgocap.ywxt.interlocution.web.Task.DataSyncScheduler"/>
 </beans>
