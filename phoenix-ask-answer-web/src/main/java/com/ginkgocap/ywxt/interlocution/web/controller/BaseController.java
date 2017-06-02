@@ -1,5 +1,7 @@
 package com.ginkgocap.ywxt.interlocution.web.controller;
 
+import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
+import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.ginkgocap.ywxt.user.model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,6 +9,8 @@ import org.slf4j.LoggerFactory;
 import javax.servlet.http.HttpServletRequest;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 public abstract class BaseController {
 
@@ -95,6 +99,31 @@ public abstract class BaseController {
 			uid=user.getId();
 		}
 		return uid;
+	}
+
+	public static SimpleFilterProvider assoFilterProvider(final String className) {
+		Set<String> filter = new HashSet<String>(8); //this number must be increased by fields
+		filter.add("id"); // id',
+		filter.add("appId");
+		filter.add("assocTypeId");
+		filter.add("assocDesc"); // '关联描述，比如文章的作者，或者编辑等；关联标签描述',
+		filter.add("assocTypeId"); // '被关联的类型可以参考AssociateType对象，如：知识, 人脉,组织，需求，事件等',
+		filter.add("assocId"); // '被关联数据ID',
+		filter.add("assocTitle"); // '被关联数据标题',
+		filter.add("assocMetadata"); // '被关联数据的的摘要用Json存放，如图片，连接URL定义等',
+
+		return simpleFilterProvider(className, filter);
+	}
+
+	public static SimpleFilterProvider simpleFilterProvider(final String className, final Set<String> filter) {
+		if (filter != null && filter.size() > 0) {
+			SimpleFilterProvider filterProvider = new SimpleFilterProvider();
+			filterProvider.addFilter(className, SimpleBeanPropertyFilter.filterOutAllExcept(filter));
+			return filterProvider;
+		}
+		else {
+			return null;
+		}
 	}
 
 }

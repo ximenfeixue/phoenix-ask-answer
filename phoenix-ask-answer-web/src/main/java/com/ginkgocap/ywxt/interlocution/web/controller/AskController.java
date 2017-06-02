@@ -13,6 +13,7 @@ import com.gintong.frame.util.dto.InterfaceResult;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.converter.json.MappingJacksonValue;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -88,7 +89,7 @@ public class AskController extends BaseController{
     @RequestMapping(value = "/all/{status}/{start}/{size}", method = RequestMethod.GET)
     public InterfaceResult getAllAskAnswer(HttpServletRequest request, @PathVariable byte status,
                                            @PathVariable int start, @PathVariable int size) {
-        User user = this.getUser(request);
+        User user = this.getJTNUser(request);
         if (user == null) {
             return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PERMISSION_EXCEPTION);
         }
@@ -98,8 +99,7 @@ public class AskController extends BaseController{
         List<Question> questionList = null;
         try {
             questionList = askService.getAllAskAnswerByStatus(status, start, size);
-            User dbUser = userService.selectByPrimaryKey(user.getId());
-            questionList = convertList(questionList, dbUser);
+            questionList = convertList(questionList);
         } catch (Exception e) {
             logger.error("invoke getAllAskAnswerByStatus method failed !" + e.getMessage());
         }
@@ -115,24 +115,30 @@ public class AskController extends BaseController{
      * @return
      */
     @RequestMapping(value = "/{questionId}/{start}/{size}", method = RequestMethod.GET)
-    public InterfaceResult detail(HttpServletRequest request, @PathVariable long questionId,
-                                  @PathVariable int start, @PathVariable int size) {
+    public MappingJacksonValue detail(HttpServletRequest request, @PathVariable long questionId,
+                                      @PathVariable int start, @PathVariable int size) {
 
+        MappingJacksonValue jacksonValue = null;
         InterfaceResult result = null;
         QuestionBase base = null;
         User user = this.getJTNUser(request);
         if (start < 0 || size <= 0) {
-            return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_EXCEPTION);
+            result = InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_EXCEPTION);
+            jacksonValue = new MappingJacksonValue(result);
+            return jacksonValue;
         }
         try {
             base = askServiceLocal.getQuestionById(questionId, start, size);
         } catch (Exception e) {
-            return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
+            result = InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
+            jacksonValue = new MappingJacksonValue(result);
+            return jacksonValue;
         }
         if (base == null || base.getQuestion() == null) {
             result = InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_DB_OPERATION_EXCEPTION);
             result.getNotification().setNotifInfo("当前问题不存在或已删除！");
-            return result;
+            jacksonValue = new MappingJacksonValue(result);
+            return jacksonValue;
         }
         Question question = base.getQuestion();
         convertQuestionUser(question);
@@ -140,7 +146,10 @@ public class AskController extends BaseController{
         if (CollectionUtils.isNotEmpty(answerList)) {
             convertAnswerUserList(answerList);
         }
-        return InterfaceResult.getSuccessInterfaceResultInstance(base);
+        result = InterfaceResult.getSuccessInterfaceResultInstance(base);
+        jacksonValue = new MappingJacksonValue(result);
+        jacksonValue.setFilters(this.assoFilterProvider(Associate.class.getName()));
+        return jacksonValue;
     }
 
     //@RequestMapping(value = "")
@@ -166,9 +175,11 @@ public class AskController extends BaseController{
      * @param questionList
      * @return
      */
-    private List<Question> convertList(List<Question> questionList, User user) {
+    private List<Question> convertList(List<Question> questionList) {
 
         for (Question question : questionList) {
+            long userId = question.getUserId();
+            User user = userService.selectByPrimaryKey(userId);
             question.setUserName(user.getName());
             question.setPicPath(user.getPicPath());
             PartAnswer topAnswer = question.getTopAnswer();
