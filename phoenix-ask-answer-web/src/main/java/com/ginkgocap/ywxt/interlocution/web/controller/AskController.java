@@ -152,7 +152,61 @@ public class AskController extends BaseController{
         return jacksonValue;
     }
 
-    //@RequestMapping(value = "")
+    /**
+     * 我的问答
+     * @param request
+     * @param askAnswerType -1：全部问答 0：我提出的 1：我回答的 2：我收藏的
+     * @param start
+     * @param size
+     * @return
+     */
+    @RequestMapping(value = "/my/{askAnswerType}/{start}/{size}", method = RequestMethod.GET)
+    public InterfaceResult getMyQuestion(HttpServletRequest request, @PathVariable byte askAnswerType,
+                                         @PathVariable int start, @PathVariable int size) {
+
+        InterfaceResult result = null;
+        User user = this.getUser(request);
+        if (user == null) {
+            return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PERMISSION_EXCEPTION);
+        }
+        long userId = user.getId();
+        List<Question> questionList = null;
+        List<QuestionHome> questionHomeList = null;
+        List<QuestionCollect> questionCollectList = null;
+        if (askAnswerType == 0) {
+            try {
+                questionList = askService.getQuestionByUId(userId, start, size);
+                result = InterfaceResult.getSuccessInterfaceResultInstance(questionList);
+            } catch (Exception e) {
+                logger.error("invoke ask service failed! method : [getQuestionByUId]" + "userId:" + userId);
+                result = InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
+            }
+        } else if (askAnswerType == 1) {
+            try {
+                questionHomeList = askServiceLocal.getAnswerByUId(userId, start, size);
+                result = InterfaceResult.getSuccessInterfaceResultInstance(questionHomeList);
+            } catch (Exception e) {
+                logger.error("invoke ask service local failed! method : [ getAnswerByUId ]");
+                result = InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
+            }
+        } else if (askAnswerType == 2) {
+            try {
+                //questionCollectList = askService.getCollectByUId(userId, start, size);
+                result = InterfaceResult.getSuccessInterfaceResultInstance(questionCollectList);
+            } catch (Exception e) {
+                logger.error("");
+                result = InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
+            }
+        } else {
+            /*try {
+                //暂时不做 全部 问答
+            } catch (Exception e) {
+                logger.error("");
+                result = InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
+            }*/
+        }
+        return result;
+    }
 
     private InterfaceResult create(DataBase base, User user) {
 
@@ -161,8 +215,6 @@ public class AskController extends BaseController{
         question.setUserId(user.getId());
         final short virtual = user.isVirtual() ? (short) 1 : (short) 0;
         question.setVirtual(virtual);
-        //question.setUserName(user.getName());
-        //question.setPicPath(user.getPicPath());
         try {
             result = askService.insert(question);
         } catch (Exception e) {
@@ -186,19 +238,14 @@ public class AskController extends BaseController{
             User user = userService.selectByPrimaryKey(userId);
             question.setUserName(user.getName());
             question.setPicPath(user.getPicPath());
-            List<PartAnswer> topAnswerList = question.getTopAnswerList();
-
-            if (CollectionUtils.isNotEmpty(topAnswerList)) {
-                for (PartAnswer topAnswer : topAnswerList) {
-                    long answererId = topAnswer.getAnswererId();
-                    User answerer = userService.selectByPrimaryKey(answererId);
-                    if (answerer == null) {
-                        logger.error("invoke userService failed ! method selectByPrimaryKey , userId : [" + answererId + "]");
-                    } else {
-                        topAnswer.setAnswererName(answerer.getName());
-                        topAnswer.setAnswererPicPath(answerer.getPicPath());
-                    }
-                }
+            PartAnswer topAnswer = question.getTopAnswer();
+            long answererId = topAnswer.getAnswererId();
+            User answerer = userService.selectByPrimaryKey(answererId);
+            if (answerer == null) {
+                logger.error("invoke userService failed ! method selectByPrimaryKey , userId : [" + answererId + "]");
+            } else {
+                topAnswer.setAnswererName(answerer.getName());
+                topAnswer.setAnswererPicPath(answerer.getPicPath());
             }
         }
         return questionList;

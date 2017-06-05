@@ -21,4 +21,12 @@ public interface AnswerService {
     Answer getAnswerById(long id) throws Exception;
 
     InterfaceResult updateAnswer(Answer answer);
+
+    List<Answer> getAnswerByUId(long userId, int start, int size) throws Exception;
+
+    InterfaceResult addTop(Answer answer);
+
+    InterfaceResult deleteTop(Answer answer);
+
+    Answer getAnswerMaxPraiseCountByQId(long questionId) throws Exception;
 }

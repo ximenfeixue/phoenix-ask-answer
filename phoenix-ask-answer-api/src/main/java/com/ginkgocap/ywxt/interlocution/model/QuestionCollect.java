@@ -28,7 +28,6 @@ public class QuestionCollect implements Serializable{
      * 当前用户 id
      */
     private long userId;
-
     /**
      * 收藏 创建时间
      */

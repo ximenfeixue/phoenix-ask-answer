@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import javax.persistence.criteria.CriteriaBuilder;
 import java.util.List;
 
 /**
@@ -69,5 +70,47 @@ public class AnswerServiceImpl implements AnswerService {
             return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_DB_OPERATION_EXCEPTION);
         }
         return InterfaceResult.getSuccessInterfaceResultInstance(true);
+    }
+
+    @Override
+    public List<Answer> getAnswerByUId(long userId, int start, int size) throws Exception {
+
+        return answerMongoDao.getAnswerByUId(userId, start, size);
+    }
+
+    @Override
+    public InterfaceResult addTop(Answer answer) {
+
+        InterfaceResult result = null;
+        try {
+            answer.setTop((byte) 1);
+            answerMongoDao.updateAnswer(answer);
+            result = InterfaceResult.getSuccessInterfaceResultInstance(answer);
+        } catch (Exception e) {
+            e.printStackTrace();
+            result = InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_DB_OPERATION_EXCEPTION);
+        }
+        return result;
+    }
+
+    @Override
+    public InterfaceResult deleteTop(Answer answer) {
+
+        InterfaceResult result = null;
+        try {
+            answer.setTop((byte) 0);
+            answerMongoDao.updateAnswer(answer);
+            result = InterfaceResult.getSuccessInterfaceResultInstance(answer);
+        } catch (Exception e) {
+            e.printStackTrace();
+            result = InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_DB_OPERATION_EXCEPTION);
+        }
+        return result;
+    }
+
+    @Override
+    public Answer getAnswerMaxPraiseCountByQId(long questionId) throws Exception {
+
+        return answerMongoDao.getAnswerMaxPraiseCountByQId(questionId);
     }
 }

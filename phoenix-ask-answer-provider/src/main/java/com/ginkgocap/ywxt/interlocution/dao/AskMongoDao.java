@@ -20,4 +20,5 @@ public interface AskMongoDao {
 
     void update(Question question) throws Exception;
 
+    List<Question> getQuestionByUId(long userId, int start, int size) throws Exception;
 }

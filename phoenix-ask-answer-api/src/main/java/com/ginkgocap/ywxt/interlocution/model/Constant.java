@@ -29,5 +29,7 @@ public class Constant {
     public final static String READ_COUNT = "readCount";
     public final static String PRAISE_COUNT = "praiseCount";
     public final static String ANSWER_ID = "answerId";
+    public final static String USER_ID = "userId";
+    public final static String ANSWERER_ID = "answererId";
 
 }

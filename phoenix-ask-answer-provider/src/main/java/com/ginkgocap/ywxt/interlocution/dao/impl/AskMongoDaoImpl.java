@@ -96,6 +96,23 @@ public class AskMongoDaoImpl implements AskMongoDao {
         mongoTemplate.insert(question, Constant.Collection.QUESTION);
     }
 
+    public List<Question> getQuestionByUId(long userId, int start, int size) throws Exception {
+
+        if (userId < 0 || start < 0 || size < 0)
+            throw new IllegalArgumentException("param is error");
+        Query query = new Query(Criteria.where(Constant.USER_ID).is(userId));
+        long count = mongoTemplate.count(query, Question.class, Constant.Collection.QUESTION);
+        int index = start * size;
+        if (index > count) {
+            logger.error("because of index > count , so return null. index :" + index + " count :" + count);
+            return null;
+        }
+        query.with(new Sort(Sort.Direction.DESC, Constant.TOP).and(new Sort(Sort.Direction.DESC, Constant.CREATE_TIME)));
+        query.skip(index);
+        query.limit(size);
+        return mongoTemplate.find(query, Question.class, Constant.Collection.QUESTION);
+    }
+
     /*public Question addQuestionReadCount(Question question) {
 
         Update update = new Update();

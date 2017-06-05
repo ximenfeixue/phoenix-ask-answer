@@ -3,6 +3,7 @@ package com.ginkgocap.ywxt.interlocution.dao.impl;
 import com.ginkgocap.ywxt.interlocution.dao.AnswerMongoDao;
 import com.ginkgocap.ywxt.interlocution.model.Answer;
 import com.ginkgocap.ywxt.interlocution.model.Constant;
+import com.ginkgocap.ywxt.interlocution.model.Question;
 import com.ginkgocap.ywxt.interlocution.service.AskAnswerCommonService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,5 +89,32 @@ public class AnswerMongoDaoImpl implements AnswerMongoDao {
         }
         mongoTemplate.insert(answer, Constant.Collection.ANSWER);
         return true;
+    }
+
+    public List<Answer> getAnswerByUId(long userId, int start, int size) throws Exception {
+
+        if (userId < 0)
+            throw new IllegalArgumentException("userId is error");
+        Query query = new Query(Criteria.where(Constant.ANSWERER_ID).is(userId));
+        long count = mongoTemplate.count(query, Answer.class, Constant.Collection.ANSWER);
+        int index = start * size;
+        if (index > count) {
+            logger.error("because of index > count ! so return null! index :" + index + " size :" + size);
+            return null;
+        }
+        query.with(new Sort(Sort.Direction.DESC, Constant.TOP).and(new Sort(Sort.Direction.DESC, Constant.CREATE_TIME)));
+        query.skip(index);
+        query.limit(size);
+        return mongoTemplate.find(query, Answer.class, Constant.Collection.ANSWER);
+    }
+
+    public Answer getAnswerMaxPraiseCountByQId(long questionId) throws Exception {
+
+        if (questionId < 0)
+            throw new IllegalArgumentException("questionId is error");
+        Query query = new Query(Criteria.where("questionId").is(questionId));
+        query.with(new Sort(Sort.Direction.DESC, Constant.PRAISE_COUNT));
+        query.limit(1);
+        return mongoTemplate.findOne(query, Answer.class, Constant.Collection.ANSWER);
     }
 }

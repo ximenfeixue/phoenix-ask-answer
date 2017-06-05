@@ -5,7 +5,7 @@ import java.io.Serializable;
 /**
  * Created by Wang fei on 2017/5/26.
  *
- * 发现 问答 ：主页 返回前端 model
+ * 我的 问答 ：我的回答 返回前端 model
  */
 public class QuestionHome implements Serializable{
 

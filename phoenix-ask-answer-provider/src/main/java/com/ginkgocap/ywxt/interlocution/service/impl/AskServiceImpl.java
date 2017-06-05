@@ -79,4 +79,11 @@ public class AskServiceImpl implements AskService {
         }
         return InterfaceResult.getSuccessInterfaceResultInstance(true);
     }
+
+    @Override
+    public List<Question> getQuestionByUId(long userId, int start, int size) throws Exception {
+
+
+        return askMongoDao.getQuestionByUId(userId, start, size);
+    }
 }

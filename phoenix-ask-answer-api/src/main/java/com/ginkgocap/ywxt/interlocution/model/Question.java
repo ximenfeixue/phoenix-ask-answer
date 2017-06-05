@@ -70,7 +70,7 @@ public class Question implements Serializable{
     /**
      * 发现 首页中 与问题一起显示的 答案
      */
-    private List<PartAnswer> topAnswerList;
+    private PartAnswer topAnswer;
     /**
      * 提问者 类型 0：个人用户 1：组织用户
      */
@@ -188,19 +188,19 @@ public class Question implements Serializable{
         this.type = type;
     }
 
-    public List<PartAnswer> getTopAnswerList() {
-        return topAnswerList;
-    }
-
-    public void setTopAnswerList(List<PartAnswer> topAnswerList) {
-        this.topAnswerList = topAnswerList;
-    }
-
     public short getVirtual() {
         return virtual;
     }
 
     public void setVirtual(short virtual) {
         this.virtual = virtual;
+    }
+
+    public PartAnswer getTopAnswer() {
+        return topAnswer;
+    }
+
+    public void setTopAnswer(PartAnswer topAnswer) {
+        this.topAnswer = topAnswer;
     }
 }

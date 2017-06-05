@@ -2,6 +2,8 @@ package com.ginkgocap.ywxt.interlocution.web.controller;
 
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+import com.ginkgocap.ywxt.interlocution.model.Answer;
+import com.ginkgocap.ywxt.interlocution.model.PartAnswer;
 import com.ginkgocap.ywxt.user.model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,6 +78,17 @@ public abstract class BaseController {
 		}
 		return user;
 	}
+
+	protected User getYINUser(HttpServletRequest request) {
+
+		User user = null;
+		user = this.getUser(request);
+		if (user == null || user.getId() != 1) {
+			return null;
+		}
+		return user;
+	}
+
 	protected boolean isWeb(HttpServletRequest request)
 	{
 		String s = request.getHeader("s");
@@ -125,5 +138,15 @@ public abstract class BaseController {
 			return null;
 		}
 	}
+	protected PartAnswer convertAnswer(Answer answer) {
 
+		PartAnswer partAnswer = new PartAnswer();
+		partAnswer.setAnswererId(answer.getAnswererId());
+		partAnswer.setAnswerId(answer.getId());
+		partAnswer.setContent(answer.getContent());
+		partAnswer.setPraiseCount(answer.getPraiseCount());
+		partAnswer.setType(answer.getType());
+		partAnswer.setVirtual(answer.getVirtual());
+		return partAnswer;
+	}
 }

@@ -235,52 +235,32 @@ public class PraiseController extends BaseController{
 
     private void updateQuestion(Question question, Answer answer) {
 
-        List<PartAnswer> partAnswerList = null;
-        List<PartAnswer> removeList = new ArrayList<PartAnswer>(1);
-        List<PartAnswer> addList = new ArrayList<PartAnswer>(1);
+        PartAnswer topAnswer = null;
         try {
-            partAnswerList = question.getTopAnswerList();
-            if (CollectionUtils.isEmpty(partAnswerList)) {
-                partAnswerList = new ArrayList<PartAnswer>();
-                PartAnswer partAnswer = convertAnswer(answer);
-                partAnswerList.add(partAnswer);
+            topAnswer = question.getTopAnswer();
+            if (topAnswer == null) {
+                topAnswer = convertAnswer(answer);
+                question.setTopAnswer(topAnswer);
+                updateTopQuestion(question);
             } else {
-                for (PartAnswer partAnswer : partAnswerList) {
-                    if (partAnswer == null)
-                        continue;
-                    byte top = partAnswer.getTop();
-                    // 最优答案 是非置顶的情况
-                    if (top == 0) {
-                        int praiseCount = partAnswer.getPraiseCount();
-                        if (answer.getPraiseCount() > praiseCount) {
-
-                            removeList.add(partAnswer);
-                            PartAnswer addPartAnswer = convertAnswer(answer);
-                            addList.add(addPartAnswer);
-                        }
-                    } else {
-                    // 最优答案 是置顶的不进行修改
+                byte top = topAnswer.getTop();
+                // 最优答案 是非置顶的情况
+                if (top == 0) {
+                    int praiseCount = topAnswer.getPraiseCount();
+                    if (answer.getPraiseCount() > praiseCount) {
+                        topAnswer = convertAnswer(answer);
+                        question.setTopAnswer(topAnswer);
+                        updateTopQuestion(question);
                     }
-                }
-                partAnswerList.removeAll(removeList);
-                partAnswerList.addAll(addList);
-            }
-            question.setTopAnswerList(partAnswerList);
-            for (PartAnswer topAnswer : question.getTopAnswerList()) {
-                if (topAnswer.getTop() == 0) {
-                    // 这种情况 只有 一个点赞数最多的 topAnswer 数据 ，所以遍历 list 进行修改操作，不会太影响性能
-                    // 修改问题 最优答案
-                    InterfaceResult result = askService.updateQuestion(question);
-                    if (!"0".equals(result.getNotification().getNotifCode())) {
-                        logger.error("update question failed! please check askService, check provider log");
-                    }
+                } else {
+                // 最优答案 是置顶的不进行修改
                 }
             }
         } catch (Exception e) {
             logger.error("invoke ask service failed! method: [updateQuestion]");
         }
     }
-
+/*
     private PartAnswer convertAnswer(Answer answer) {
 
         PartAnswer partAnswer = new PartAnswer();
@@ -291,12 +271,10 @@ public class PraiseController extends BaseController{
         partAnswer.setType(answer.getType());
         partAnswer.setVirtual(answer.getVirtual());
         return partAnswer;
-    }
+    }*/
 
-    private void updateTopQuestion(List<PartAnswer> partAnswerList, PartAnswer partAnswer, Question question) {
+    private void updateTopQuestion(Question question) throws Exception{
 
-        partAnswerList.add(partAnswer);
-        question.setTopAnswerList(partAnswerList);
         // 修改问题 最优答案
         InterfaceResult result = askService.updateQuestion(question);
         if (!"0".equals(result.getNotification().getNotifCode())) {

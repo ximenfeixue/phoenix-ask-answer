@@ -45,4 +45,20 @@ public interface AnswerMongoDao {
      * @throws Exception
      */
     boolean updateAnswer(Answer answer) throws Exception;
+
+    /**
+     * 查询答案列表 通过 userId
+     * @param userId
+     * @return
+     * @throws Exception
+     */
+    List<Answer> getAnswerByUId(long userId, int start, int size) throws Exception;
+
+    /**
+     * 查询最多点赞数的 答案 若有多个 取第一条
+     * @param questionId
+     * @return
+     * @throws Exception
+     */
+    Answer getAnswerMaxPraiseCountByQId(long questionId) throws Exception;
 }
