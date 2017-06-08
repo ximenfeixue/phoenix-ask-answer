@@ -1,8 +1,7 @@
 package com.ginkgocap.ywxt.interlocution.web.controller;
 
 import com.ginkgocap.parasol.util.JsonUtils;
-import com.ginkgocap.ywxt.interlocution.model.Answer;
-import com.ginkgocap.ywxt.interlocution.model.ID;
+import com.ginkgocap.ywxt.interlocution.model.*;
 import com.ginkgocap.ywxt.interlocution.service.AnswerService;
 import com.ginkgocap.ywxt.interlocution.service.AskService;
 import com.ginkgocap.ywxt.interlocution.web.service.AnswerServiceLocal;
@@ -75,18 +74,14 @@ public class AskAnswerOtherController extends BaseController{
      * @param topType 0：问题 1：答案
      * @return
      */
-    @RequestMapping(value = "/top/{topType}", method = RequestMethod.DELETE)
-    public InterfaceResult deleteTop(HttpServletRequest request, @PathVariable byte topType) {
+    @RequestMapping(value = "/top/{topType}/{id}", method = RequestMethod.DELETE)
+    public InterfaceResult deleteTop(HttpServletRequest request, @PathVariable byte topType,
+                                     @PathVariable long id) {
 
         InterfaceResult result = null;
-        long id = 0;
         User user = this.getYINUser(request);
         if (user == null) {
             return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PERMISSION_EXCEPTION);
-        }
-        InterfaceResult idResult = getId(request);
-        if ("0".equals(idResult.getNotification().getNotifCode())) {
-            id = (Long)idResult.getResponseData();
         }
         if (topType == 0) {
             try {
@@ -106,6 +101,87 @@ public class AskAnswerOtherController extends BaseController{
         return result;
     }
 
+    /**
+     * 收藏 问题
+     * @param request
+     * @return
+     */
+    @RequestMapping(value = "/collect", method = RequestMethod.POST)
+    public InterfaceResult collect(HttpServletRequest request) {
+
+        InterfaceResult result = null;
+        String requestJson = null;
+        QuestionCollect collect = null;
+        User user = this.getUser(request);
+        if (user == null) {
+            return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PERMISSION_EXCEPTION);
+        }
+        try {
+            requestJson = this.getBodyParam(request);
+            collect = (QuestionCollect)JsonUtils.jsonToBean(requestJson, QuestionCollect.class);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_EXCEPTION);
+        }
+        collect.setUserId(user.getId());
+        try {
+            result = askService.addCollect(collect);
+        } catch (Exception e) {
+            logger.error("invoke ask service failed! method :[ addCollect ]");
+            return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
+        }
+        return result;
+    }
+
+    /**
+     * 取消 收藏
+     * @param request
+     * @return
+     */
+    @RequestMapping(value = "/collect/{questionId}", method = RequestMethod.DELETE)
+    public InterfaceResult deleteCollect(HttpServletRequest request, @PathVariable long questionId) {
+
+        InterfaceResult result = null;
+        User user = this.getUser(request);
+        if (user == null) {
+            return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PERMISSION_EXCEPTION);
+        }
+        if (questionId < 0)
+            return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_NULL_EXCEPTION);
+        result = askService.deleteCollect(questionId, user.getId());
+        return result;
+    }
+
+    /**
+     * 举报 问题
+     * @param request
+     * @return
+     */
+    @RequestMapping(value = "/report", method = RequestMethod.POST)
+    public InterfaceResult addReport(HttpServletRequest request) {
+
+        InterfaceResult result = null;
+        String requestJson = null;
+        QuestionReport report = null;
+        User user = this.getUser(request);
+        if (user == null) {
+            return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PERMISSION_EXCEPTION);
+        }
+        try {
+            requestJson = this.getBodyParam(request);
+            report = (QuestionReport) JsonUtils.jsonToBean(requestJson, QuestionReport.class);
+        } catch (Exception e) {
+            return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_EXCEPTION);
+        }
+        report.setUserId(user.getId());
+        try {
+            result = askService.addReport(report);
+        } catch (Exception e) {
+            logger.error("invoke ask service failed ! method :[ addReport ]");
+        }
+        return result;
+    }
+
     private InterfaceResult getId(HttpServletRequest request) {
 
         InterfaceResult result = null;
@@ -119,6 +195,7 @@ public class AskAnswerOtherController extends BaseController{
             return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_EXCEPTION);
         }
         if (id != null && id.getId() > 0) {
+            logger.info("ID class : [" + id.getId() + "]");
             result = InterfaceResult.getSuccessInterfaceResultInstance(id.getId());
         }
         return result;

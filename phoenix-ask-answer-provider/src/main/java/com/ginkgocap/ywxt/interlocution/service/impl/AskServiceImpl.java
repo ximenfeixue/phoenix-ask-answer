@@ -2,6 +2,8 @@ package com.ginkgocap.ywxt.interlocution.service.impl;
 
 import com.ginkgocap.ywxt.interlocution.dao.AskMongoDao;
 import com.ginkgocap.ywxt.interlocution.model.Question;
+import com.ginkgocap.ywxt.interlocution.model.QuestionCollect;
+import com.ginkgocap.ywxt.interlocution.model.QuestionReport;
 import com.ginkgocap.ywxt.interlocution.service.AskService;
 import com.gintong.frame.util.dto.CommonResultCode;
 import com.gintong.frame.util.dto.InterfaceResult;
@@ -83,7 +85,57 @@ public class AskServiceImpl implements AskService {
     @Override
     public List<Question> getQuestionByUId(long userId, int start, int size) throws Exception {
 
-
         return askMongoDao.getQuestionByUId(userId, start, size);
+    }
+
+    @Override
+    public InterfaceResult addCollect(QuestionCollect collect) {
+
+        QuestionCollect saveCollect = null;
+        long id = 0;
+        try {
+            saveCollect = askMongoDao.addCollect(collect);
+            id = saveCollect.getId();
+        } catch (Exception e) {
+            return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_DB_OPERATION_EXCEPTION);
+        }
+        return InterfaceResult.getSuccessInterfaceResultInstance(id);
+    }
+
+    @Override
+    public InterfaceResult deleteCollect(long questionId, long userId) {
+
+        try {
+            askMongoDao.deleteCollect(questionId, userId);
+        } catch (Exception e) {
+            return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_DB_OPERATION_EXCEPTION);
+        }
+        return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SUCCESS);
+    }
+
+    @Override
+    public InterfaceResult addReport(QuestionReport report) {
+
+        QuestionReport saveReport = null;
+        long id = 0;
+        try {
+            saveReport = askMongoDao.addReport(report);
+            id = saveReport.getId();
+        } catch (Exception e) {
+            return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_DB_OPERATION_EXCEPTION);
+        }
+        return InterfaceResult.getSuccessInterfaceResultInstance(id);
+    }
+
+    @Override
+    public List<QuestionCollect> getCollectByUId(long userId, int start, int size) throws Exception {
+
+        return askMongoDao.getCollectByUId(userId, start, size);
+    }
+
+    @Override
+    public QuestionCollect getCollectByUIdQuestionId(long userId, long questionId) throws Exception {
+
+        return askMongoDao.getCollectByUIdQuestionId(userId, questionId);
     }
 }

@@ -18,7 +18,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <skip_maven_deploy>false</skip_maven_deploy>
-        <entire.version>5.6.1</entire.version>
+        <entire.version>5.6.3</entire.version>
         <frame.util.version>1.0.1-SNAPSHOT</frame.util.version>
         <slf4j-api.version>1.7.2</slf4j-api.version>
         <slf4j-log4j12.version>1.7.2</slf4j-log4j12.version>

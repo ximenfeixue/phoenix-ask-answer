@@ -25,6 +25,16 @@ public class QuestionCollect implements Serializable{
      */
     private long ownerId;
     /**
+     * 提出问题者 name
+     */
+    @Transient
+    private String ownerName;
+    /**
+     * 提出问题者 头像
+     */
+    @Transient
+    private String ownerPicPath;
+    /**
      * 当前用户 id
      */
     private long userId;
@@ -79,5 +89,21 @@ public class QuestionCollect implements Serializable{
 
     public void setUserId(long userId) {
         this.userId = userId;
+    }
+
+    public String getOwnerName() {
+        return ownerName;
+    }
+
+    public void setOwnerName(String ownerName) {
+        this.ownerName = ownerName;
+    }
+
+    public String getOwnerPicPath() {
+        return ownerPicPath;
+    }
+
+    public void setOwnerPicPath(String ownerPicPath) {
+        this.ownerPicPath = ownerPicPath;
     }
 }

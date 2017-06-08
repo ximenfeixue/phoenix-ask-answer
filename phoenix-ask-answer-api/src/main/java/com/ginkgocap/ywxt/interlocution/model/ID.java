@@ -8,7 +8,7 @@ import java.util.List;
  */
 public class ID<T> implements Serializable{
 
-    private static final long serialVersionUID = 8146712290836358494L;
+    private static final long serialVersionUID = 2246712290836358494L;
 
     private long id;
 

@@ -2,6 +2,7 @@ package com.ginkgocap.ywxt.interlocution.web.controller;
 
 import com.ginkgocap.parasol.associate.model.Associate;
 import com.ginkgocap.parasol.util.JsonUtils;
+import com.ginkgocap.ywxt.cache.Cache;
 import com.ginkgocap.ywxt.interlocution.model.*;
 import com.ginkgocap.ywxt.interlocution.service.AskService;
 import com.ginkgocap.ywxt.interlocution.web.service.AskServiceLocal;
@@ -20,6 +21,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.List;
+import java.util.Set;
 
 
 /**
@@ -42,6 +44,9 @@ public class AskController extends BaseController{
 
     @Resource
     private AskServiceLocal askServiceLocal;
+
+    @Resource
+    private Cache cache;
 
     @RequestMapping(method = RequestMethod.POST)
     public InterfaceResult create(HttpServletRequest request, HttpServletResponse response) {
@@ -99,7 +104,7 @@ public class AskController extends BaseController{
         List<Question> questionList = null;
         try {
             questionList = askService.getAllAskAnswerByStatus(status, start, size);
-            questionList = convertList(questionList);
+            questionList = convertList(questionList, user.getId());
         } catch (Exception e) {
             logger.error("invoke getAllAskAnswerByStatus method failed !" + e.getMessage());
         }
@@ -122,6 +127,7 @@ public class AskController extends BaseController{
         InterfaceResult result = null;
         QuestionBase base = null;
         User user = this.getJTNUser(request);
+        long userId = user.getId();
         if (start < 0 || size <= 0) {
             result = InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_EXCEPTION);
             jacksonValue = new MappingJacksonValue(result);
@@ -141,10 +147,10 @@ public class AskController extends BaseController{
             return jacksonValue;
         }
         Question question = base.getQuestion();
-        convertQuestionUser(question);
+        convertQuestionUser(question, userId);
         List<Answer> answerList = base.getAnswerList();
         if (CollectionUtils.isNotEmpty(answerList)) {
-            convertAnswerUserList(answerList);
+            convertAnswerUserList(answerList, userId);
         }
         result = InterfaceResult.getSuccessInterfaceResultInstance(base);
         jacksonValue = new MappingJacksonValue(result);
@@ -176,6 +182,7 @@ public class AskController extends BaseController{
         if (askAnswerType == 0) {
             try {
                 questionList = askService.getQuestionByUId(userId, start, size);
+                questionList = convertList(questionList, userId);
                 result = InterfaceResult.getSuccessInterfaceResultInstance(questionList);
             } catch (Exception e) {
                 logger.error("invoke ask service failed! method : [getQuestionByUId]" + "userId:" + userId);
@@ -184,6 +191,7 @@ public class AskController extends BaseController{
         } else if (askAnswerType == 1) {
             try {
                 questionHomeList = askServiceLocal.getAnswerByUId(userId, start, size);
+                questionHomeList = convertMyAnswerList(questionHomeList, user);
                 result = InterfaceResult.getSuccessInterfaceResultInstance(questionHomeList);
             } catch (Exception e) {
                 logger.error("invoke ask service local failed! method : [ getAnswerByUId ]");
@@ -191,10 +199,11 @@ public class AskController extends BaseController{
             }
         } else if (askAnswerType == 2) {
             try {
-                //questionCollectList = askService.getCollectByUId(userId, start, size);
+                questionCollectList = askService.getCollectByUId(userId, start, size);
+                questionCollectList = convertMyCollectList(questionCollectList);
                 result = InterfaceResult.getSuccessInterfaceResultInstance(questionCollectList);
             } catch (Exception e) {
-                logger.error("");
+                logger.error("invoke ask service failed! method : [ getCollectByUId ]");
                 result = InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
             }
         } else {
@@ -225,13 +234,15 @@ public class AskController extends BaseController{
     }
 
     /**
-     * 将发现 问答中 user 的 name 和 picPath 补全
+     * 将发现 问答中/ 我的提问中 user 的 name 和 picPath 补全
      *
      * 以后系统 优化 将 user 的 name picPath 都放到 redis 中
+     *
+     * 业务逻辑 导致 遍历 中操作 数据库 可优化最好了
      * @param questionList
      * @return
      */
-    private List<Question> convertList(List<Question> questionList) {
+    private List<Question> convertList(List<Question> questionList, long currentUserId) {
 
         for (Question question : questionList) {
             long userId = question.getUserId();
@@ -239,13 +250,20 @@ public class AskController extends BaseController{
             question.setUserName(user.getName());
             question.setPicPath(user.getPicPath());
             PartAnswer topAnswer = question.getTopAnswer();
-            long answererId = topAnswer.getAnswererId();
-            User answerer = userService.selectByPrimaryKey(answererId);
-            if (answerer == null) {
-                logger.error("invoke userService failed ! method selectByPrimaryKey , userId : [" + answererId + "]");
-            } else {
-                topAnswer.setAnswererName(answerer.getName());
-                topAnswer.setAnswererPicPath(answerer.getPicPath());
+            if (topAnswer != null) {
+                long answererId = topAnswer.getAnswererId();
+                long answerId = topAnswer.getAnswerId();
+                User answerer = userService.selectByPrimaryKey(answererId);
+                if (answerer == null) {
+                    logger.error("invoke userService failed ! method selectByPrimaryKey , userId : [" + answererId + "]");
+                } else {
+                    topAnswer.setAnswererName(answerer.getName());
+                    topAnswer.setAnswererPicPath(answerer.getPicPath());
+                    boolean existPraise = this.isExistPraise(answerId, currentUserId);
+                    topAnswer.setIsPraise((byte)(existPraise ? 1 : 0));
+                    Set<String> praiseUIdSet = this.getPraiseUIdSet(answerId);
+                    topAnswer.setPraiseCount(praiseUIdSet.size());
+                }
             }
         }
         return questionList;
@@ -257,12 +275,20 @@ public class AskController extends BaseController{
      *
      * @param question
      */
-    private void convertQuestionUser(Question question) {
+    private void convertQuestionUser(Question question, long currentUId) {
 
         long userId = question.getUserId();
+        long id = question.getId();
         User user = userService.selectByPrimaryKey(userId);
         question.setUserName(user.getName());
         question.setPicPath(user.getPicPath());
+        QuestionCollect collect = null;
+        try {
+            collect = askService.getCollectByUIdQuestionId(currentUId, id);
+        } catch (Exception e) {
+            logger.error("invoke ask service failed! method: [ getCollectByUIdQuestionId ]");
+        }
+        question.setIsCollect((byte)(collect == null ? 0 : 1));
     }
 
     /**
@@ -274,16 +300,72 @@ public class AskController extends BaseController{
      *
      * @param answerList
      */
-    private List<Answer> convertAnswerUserList(List<Answer> answerList) {
+    private List<Answer> convertAnswerUserList(List<Answer> answerList, long currentUserId) {
 
-        for (Answer answer : answerList) {
-            if (answer == null)
-                continue;
-            long answererId = answer.getAnswererId();
-            User user = userService.selectByPrimaryKey(answererId);
-            answer.setAnswererName(user.getName());
-            answer.setAnswererPicPath(user.getPicPath());
+        if (CollectionUtils.isNotEmpty(answerList)) {
+            for (Answer answer : answerList) {
+                if (answer == null)
+                    continue;
+                long answererId = answer.getAnswererId();
+                long id = answer.getId();
+                User user = userService.selectByPrimaryKey(answererId);
+                answer.setAnswererName(user.getName());
+                answer.setAnswererPicPath(user.getPicPath());
+                boolean existPraise = this.isExistPraise(id, currentUserId);
+                answer.setIsPraise((byte)(existPraise ? 1 : 0));
+                Set<String> praiseUIdSet = this.getPraiseUIdSet(id);
+                answer.setPraiseCount(praiseUIdSet.size());
+            }
         }
         return answerList;
+    }
+
+    /**
+     * 我的 回答 列表 补全 name 和 picPath
+     * @param questionHomeList
+     * @param user
+     * @return
+     */
+    private List<QuestionHome> convertMyAnswerList(List<QuestionHome> questionHomeList, User user) {
+
+        if (CollectionUtils.isNotEmpty(questionHomeList)) {
+            for (QuestionHome questionHome : questionHomeList) {
+                if (questionHome == null)
+                    continue;
+                Question question = questionHome.getQuestion();
+                if (question ==  null)
+                    continue;
+                long userId = question.getUserId();
+                User qUser = userService.selectByPrimaryKey(userId);
+                question.setUserName(qUser.getName());
+                question.setPicPath(qUser.getPicPath());
+                Answer answer = questionHome.getAnswer();
+                if (answer == null)
+                    continue;
+                long id = answer.getId();
+                answer.setAnswererName(user.getName());
+                answer.setAnswererPicPath(user.getPicPath());
+                boolean existPraise = this.isExistPraise(id, user.getId());
+                answer.setIsPraise((byte)(existPraise ? 1 : 0));
+                Set<String> praiseUIdSet = this.getPraiseUIdSet(id);
+                answer.setPraiseCount(praiseUIdSet.size());
+            }
+        }
+        return questionHomeList;
+    }
+
+    private List<QuestionCollect> convertMyCollectList(List<QuestionCollect> collectList) {
+
+        if (CollectionUtils.isNotEmpty(collectList)) {
+            for (QuestionCollect collect : collectList) {
+                if (collect == null)
+                    continue;
+                long ownerId = collect.getOwnerId();
+                User user = userService.selectByPrimaryKey(ownerId);
+                collect.setOwnerName(user.getName());
+                collect.setOwnerPicPath(user.getPicPath());
+            }
+        }
+        return collectList;
     }
 }

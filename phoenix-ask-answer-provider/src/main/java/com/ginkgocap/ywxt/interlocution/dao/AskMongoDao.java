@@ -2,6 +2,8 @@ package com.ginkgocap.ywxt.interlocution.dao;
 
 
 import com.ginkgocap.ywxt.interlocution.model.Question;
+import com.ginkgocap.ywxt.interlocution.model.QuestionCollect;
+import com.ginkgocap.ywxt.interlocution.model.QuestionReport;
 
 import java.util.List;
 
@@ -21,4 +23,14 @@ public interface AskMongoDao {
     void update(Question question) throws Exception;
 
     List<Question> getQuestionByUId(long userId, int start, int size) throws Exception;
+
+    QuestionCollect addCollect(QuestionCollect collect) throws Exception;
+
+    boolean deleteCollect(long questionId, long userId) throws Exception;
+
+    QuestionReport addReport(QuestionReport report) throws Exception;
+
+    List<QuestionCollect> getCollectByUId(long userId, int start, int size) throws Exception;
+
+    QuestionCollect getCollectByUIdQuestionId(long userId, long questionId) throws Exception;
 }

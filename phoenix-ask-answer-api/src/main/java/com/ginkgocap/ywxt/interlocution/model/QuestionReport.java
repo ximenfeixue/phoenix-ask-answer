@@ -22,7 +22,6 @@ public class QuestionReport implements Serializable{
      * 举报 时间
      */
     private long createTime;
-
     /**
      * 问题提出者 id
      */

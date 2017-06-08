@@ -66,6 +66,10 @@ public class Answer implements Serializable{
      * 回答者 类型 0：个人用户 1：组织用户
      */
     private short virtual;
+    /**
+     * 是否 点赞 0：非点赞 1：已点赞
+     */
+    private byte isPraise;
 
     public long getId() {
         return id;
@@ -177,5 +181,13 @@ public class Answer implements Serializable{
 
     public void setVirtual(short virtual) {
         this.virtual = virtual;
+    }
+
+    public byte getIsPraise() {
+        return isPraise;
+    }
+
+    public void setIsPraise(byte isPraise) {
+        this.isPraise = isPraise;
     }
 }

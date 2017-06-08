@@ -1,6 +1,7 @@
 package com.ginkgocap.ywxt.interlocution.web.controller;
 
 import com.ginkgocap.parasol.util.JsonUtils;
+import com.ginkgocap.ywxt.cache.Cache;
 import com.ginkgocap.ywxt.interlocution.model.*;
 import com.ginkgocap.ywxt.interlocution.service.AnswerService;
 import com.ginkgocap.ywxt.interlocution.service.AskService;
@@ -12,9 +13,7 @@ import com.ginkgocap.ywxt.user.service.UserService;
 import com.gintong.frame.util.dto.CommonResultCode;
 import com.gintong.frame.util.dto.InterfaceResult;
 import com.gintong.ywxt.im.model.MessageNotify;
-import com.gintong.ywxt.im.model.MessageNotifyType;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,10 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by Wang fei on 2017/5/31.
@@ -52,6 +48,9 @@ public class PraiseController extends BaseController{
 
     @Resource
     private AskService askService;
+
+    @Resource
+    private Cache cache;
 
     /**
      * 创建点赞
@@ -103,7 +102,6 @@ public class PraiseController extends BaseController{
                 logger.error("param : answerId < 1");
                 return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_EXCEPTION);
             }
-
             try {
                 answer = answerService.getAnswerById(answerId);
 
@@ -111,6 +109,9 @@ public class PraiseController extends BaseController{
                 logger.error("invoke answerService failed! method :[getAnswerById]");
                 return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
             }
+            // 放到 redis 中 key：answerId value: userId
+            addPraiseUId2Redis(answerId, user.getId());
+
             // 更新答案表
             try {
                 updateAnswer(dbUser, answer);
@@ -119,7 +120,6 @@ public class PraiseController extends BaseController{
                 logger.error("invoke answer service failed! method :[ getAnswerById, updateAnswer ]");
             }
             // 更新问题表
-            //updateQuestion()
             try {
                 question = askService.getQuestionById(answer.getQuestionId());
 
@@ -162,12 +162,41 @@ public class PraiseController extends BaseController{
         if (user == null) {
             return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PERMISSION_EXCEPTION);
         }
+        long userId = user.getId();
         try {
-            result = praiseService.delete(answerId, user.getId());
-
+            result = praiseService.delete(answerId, userId);
+            // 删除 redis 中 数据
+            if ("0".equals(result.getNotification().getNotifCode())) {
+                this.removePraiseUId(answerId, userId);
+            }
         } catch (Exception e) {
             logger.error("invoke praise service failed! please check service");
             return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
+        }
+        return result;
+    }
+
+    /**
+     * 点赞 过的人 列表
+     * @param request
+     * @param answerId
+     * @return
+     */
+    @RequestMapping(value = "/{answerId}/{start}/{size}", method = RequestMethod.GET)
+    public InterfaceResult getPraiseUser(HttpServletRequest request, @PathVariable long answerId,
+                                         @PathVariable int start, @PathVariable int size) {
+
+        InterfaceResult result = null;
+        User user = this.getUser(request);
+        if (user == null)
+            return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PERMISSION_EXCEPTION);
+        try {
+            List<Praise> praiseList = praiseService.getPraiseUser(answerId, start, size);
+            praiseList = convertPraiseList(praiseList);
+            result = InterfaceResult.getSuccessInterfaceResultInstance(praiseList);
+        } catch (Exception e) {
+            logger.error("invoke praise service failed! method : [ getPraiseUser ]");
+            return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_DB_OPERATION_EXCEPTION);
         }
         return result;
     }
@@ -217,6 +246,9 @@ public class PraiseController extends BaseController{
             if (CollectionUtils.isEmpty(partPraiseList)) {
                 partPraiseList = new ArrayList<PartPraise>(3);
             }
+            // 重新 设置 praiseCount 通过 redis 得到 点赞者的 size
+            Set<String> set = this.getPraiseUIdSet(answer.getId());
+            answer.setPraiseCount(set.size());
             if (partPraiseList.size() < 3) {
                 PartPraise partPraise = new PartPraise();
                 partPraise.setAdmirerId(user.getId());
@@ -260,18 +292,6 @@ public class PraiseController extends BaseController{
             logger.error("invoke ask service failed! method: [updateQuestion]");
         }
     }
-/*
-    private PartAnswer convertAnswer(Answer answer) {
-
-        PartAnswer partAnswer = new PartAnswer();
-        partAnswer.setAnswererId(answer.getAnswererId());
-        partAnswer.setAnswerId(answer.getId());
-        partAnswer.setContent(answer.getContent());
-        partAnswer.setPraiseCount(answer.getPraiseCount());
-        partAnswer.setType(answer.getType());
-        partAnswer.setVirtual(answer.getVirtual());
-        return partAnswer;
-    }*/
 
     private void updateTopQuestion(Question question) throws Exception{
 
@@ -280,5 +300,20 @@ public class PraiseController extends BaseController{
         if (!"0".equals(result.getNotification().getNotifCode())) {
             logger.error("update question failed! please check askService, check provider log");
         }
+    }
+
+    private List<Praise> convertPraiseList(List<Praise> praiseList) {
+
+        if (CollectionUtils.isNotEmpty(praiseList)) {
+            for (Praise praise : praiseList) {
+                if (praise == null)
+                    continue;
+                long admirerId = praise.getAdmirerId();
+                User user = userService.selectByPrimaryKey(admirerId);
+                praise.setAdmirerName(user.getName());
+                praise.setAdmirerPicPath(user.getPicPath());
+            }
+        }
+        return praiseList;
     }
 }

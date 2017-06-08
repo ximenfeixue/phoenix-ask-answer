@@ -2,16 +2,24 @@ package com.ginkgocap.ywxt.interlocution.web.controller;
 
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+import com.ginkgocap.ywxt.cache.Cache;
 import com.ginkgocap.ywxt.interlocution.model.Answer;
 import com.ginkgocap.ywxt.interlocution.model.PartAnswer;
+import com.ginkgocap.ywxt.interlocution.model.Praise;
+import com.ginkgocap.ywxt.interlocution.service.PraiseService;
 import com.ginkgocap.ywxt.user.model.User;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public abstract class BaseController {
@@ -21,6 +29,13 @@ public abstract class BaseController {
 	/*@Resource
 	private RedisCacheService redisCacheService;
 */
+
+	@Resource
+	private Cache cache;
+
+	@Autowired
+	private PraiseService praiseService;
+
 	/**
 	 * 从body中获得参数
 	 *
@@ -147,6 +162,99 @@ public abstract class BaseController {
 		partAnswer.setPraiseCount(answer.getPraiseCount());
 		partAnswer.setType(answer.getType());
 		partAnswer.setVirtual(answer.getVirtual());
+		partAnswer.setTop(answer.getTop());
 		return partAnswer;
+	}
+
+	/**
+	 * 将 点赞者id 放到 redis中
+	 * @param answerId 作为key
+	 * @param userId 作为 value
+	 */
+	protected long addPraiseUId2Redis(long answerId, long userId) {
+
+		return cache.saddRedis("ask_answer_praise_" + answerId, 60 * 60 * 24, "" + userId);
+	}
+
+	/**
+	 * 查询点赞者 set 通过 答案 id
+	 *
+	 * 暂时 主要是 为了 返回前端的 点赞数 praiseCount 通过 set.size();
+	 * @param answerId
+	 * @return
+	 */
+	protected Set<String> getPraiseUIdSet(long answerId) {
+
+		Set<String> set = cache.smembersRedis("ask_answer_praise_" + answerId);
+		if (CollectionUtils.isEmpty(set)) {
+			// 同步数据
+			updateRedisByMongo(answerId);
+			set = cache.smembersRedis("ask_answer_praise_" + answerId);
+		}
+		return set;
+	}
+
+	/**
+	 * 判断 用户 id 是否 在答案的点赞 set 中
+	 * @param answerId
+	 * @param userId
+	 * @return
+	 */
+	protected boolean isExistPraise(long answerId, long userId) {
+
+		boolean existPraise;
+		existPraise = cache.sismemberRedis("ask_answer_praise_" + answerId , "" + userId);
+		if (!existPraise) {
+			Set<String> set = cache.smembersRedis("ask_answer_praise_" + answerId);
+			if (CollectionUtils.isNotEmpty(set)) {
+				return false;
+			}
+			// 同步数据
+			updateRedisByMongo(answerId);
+			existPraise = cache.sismemberRedis("ask_answer_praise_" + answerId, "" + userId);
+		}
+		return existPraise;
+	}
+
+	/**
+	 * 删除 取消 点赞的人
+	 * @param answerId
+	 * @param userId
+	 * @return
+	 */
+	protected long removePraiseUId(long answerId, long userId) {
+
+		return cache.sremRedis("ask_answer_praise_" + answerId, "" + userId);
+	}
+
+	/**
+	 * 若redis 中 key 失效 ，去mongo 中查询 再同步数据到 redis 中
+	 * @param answerId
+	 */
+	private void updateRedisByMongo(long answerId) {
+
+		int start = 0;
+		final int size = 10;
+		// 加 size
+		long count = 0;
+		try {
+			count = praiseService.countByAnswerId(answerId);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		List<String> list = new ArrayList<String>((int)count);
+		try {
+			List<Praise> praiseUserList = praiseService.getPraiseUser(answerId, start++, size);
+			while (CollectionUtils.isNotEmpty(praiseUserList)) {
+				for (Praise praise : praiseUserList) {
+					long admirerId = praise.getAdmirerId();
+					list.add("" + admirerId);
+				}
+				praiseUserList = praiseService.getPraiseUser(answerId, start++, size);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		cache.saddRedis("ask_answer_praise_" + answerId, 24 * 60 * 60, list.toArray(new String [1]));
 	}
 }

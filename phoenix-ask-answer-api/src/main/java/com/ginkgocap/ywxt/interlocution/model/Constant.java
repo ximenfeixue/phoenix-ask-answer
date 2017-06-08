@@ -7,6 +7,8 @@ public class Constant {
 
     public static class Collection {
         public final static String QUESTION = "question";
+        public final static String QUESTION_COLLECT = "questionCollect";
+        public final static String QUESTION_REPORT = "questionReport";
         public final static String ANSWER = "answer";
         public final static String DATA_SYNC = "dataSync";
         public final static String PRAISE = "praise";

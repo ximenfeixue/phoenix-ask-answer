@@ -50,6 +50,10 @@ public class PartAnswer implements Serializable{
      * 答案 是否置顶 0：非置顶 1：置顶
      */
     private byte top;
+    /**
+     * 是否 点赞 0：非点赞 1：已点赞
+     */
+    private byte isPraise;
 
     public long getAnswerId() {
         return answerId;
@@ -121,5 +125,13 @@ public class PartAnswer implements Serializable{
 
     public void setTop(byte top) {
         this.top = top;
+    }
+
+    public byte getIsPraise() {
+        return isPraise;
+    }
+
+    public void setIsPraise(byte isPraise) {
+        this.isPraise = isPraise;
     }
 }

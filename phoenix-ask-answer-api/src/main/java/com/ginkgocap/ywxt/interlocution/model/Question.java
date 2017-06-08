@@ -75,6 +75,11 @@ public class Question implements Serializable{
      * 提问者 类型 0：个人用户 1：组织用户
      */
     private short virtual;
+    /**
+     * 问题 是否被收藏 0：未收藏 1：已收藏
+     */
+    @Transient
+    private byte isCollect;
 
     public long getId() {
         return id;
@@ -202,5 +207,13 @@ public class Question implements Serializable{
 
     public void setTopAnswer(PartAnswer topAnswer) {
         this.topAnswer = topAnswer;
+    }
+
+    public byte getIsCollect() {
+        return isCollect;
+    }
+
+    public void setIsCollect(byte isCollect) {
+        this.isCollect = isCollect;
     }
 }

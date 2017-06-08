@@ -1,6 +1,8 @@
 package com.ginkgocap.ywxt.interlocution.service;
 
 import com.ginkgocap.ywxt.interlocution.model.Question;
+import com.ginkgocap.ywxt.interlocution.model.QuestionCollect;
+import com.ginkgocap.ywxt.interlocution.model.QuestionReport;
 import com.gintong.frame.util.dto.InterfaceResult;
 
 import java.util.List;
@@ -60,4 +62,41 @@ public interface AskService {
      * @throws Exception
      */
     List<Question> getQuestionByUId(long userId, int start, int size) throws Exception;
+    /**
+     * 收藏 问题
+     * @param collect
+     * @return
+     */
+    InterfaceResult addCollect(QuestionCollect collect);
+    /**
+     * 取消 收藏 问题
+     * @param questionId
+     * @param userId
+     * @return
+     */
+    InterfaceResult deleteCollect(long questionId, long userId);
+    /**
+     * 举报 问题
+     * @param report
+     * @return
+     */
+    InterfaceResult addReport(QuestionReport report);
+    /**
+     * 查询 我的 收藏问题列表
+     * @param userId
+     * @param start
+     * @param size
+     * @return
+     * @throws Exception
+     */
+    List<QuestionCollect> getCollectByUId(long userId, int start, int size) throws Exception;
+
+    /**
+     * 查询收藏问题 通过 userId ，questionId
+     * @param userId
+     * @param questionId
+     * @return
+     * @throws Exception
+     */
+    QuestionCollect getCollectByUIdQuestionId(long userId, long questionId) throws Exception;
 }
