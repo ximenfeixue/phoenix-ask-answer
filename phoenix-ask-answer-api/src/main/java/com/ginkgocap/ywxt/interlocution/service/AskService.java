@@ -90,7 +90,6 @@ public interface AskService {
      * @throws Exception
      */
     List<QuestionCollect> getCollectByUId(long userId, int start, int size) throws Exception;
-
     /**
      * 查询收藏问题 通过 userId ，questionId
      * @param userId
@@ -99,4 +98,10 @@ public interface AskService {
      * @throws Exception
      */
     QuestionCollect getCollectByUIdQuestionId(long userId, long questionId) throws Exception;
+    /**
+     * 删除问题 通过 id
+     * @param id
+     * @return
+     */
+    InterfaceResult deleteQuestion(long id);
 }

@@ -33,4 +33,6 @@ public interface AskMongoDao {
     List<QuestionCollect> getCollectByUId(long userId, int start, int size) throws Exception;
 
     QuestionCollect getCollectByUIdQuestionId(long userId, long questionId) throws Exception;
+
+    boolean deleteQuestion(long id) throws Exception;
 }

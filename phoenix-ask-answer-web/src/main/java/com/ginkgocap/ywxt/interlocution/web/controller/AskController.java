@@ -217,6 +217,30 @@ public class AskController extends BaseController{
         return result;
     }
 
+    /**
+     * 删除 问题
+     * @param request
+     * @param id
+     * @return
+     */
+    @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
+    public InterfaceResult delete(HttpServletRequest request, @PathVariable long id) {
+
+        InterfaceResult result = null;
+        User user = this.getUser(request);
+        if (user == null)
+            return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PERMISSION_EXCEPTION);
+        try {
+            logger.info("delete question id = " + id);
+            result = askService.deleteQuestion(id);
+        } catch (Exception e) {
+            logger.error("invoke ask service failed! method [ deleteQuestion ] id:" + id);
+            return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_DB_OPERATION_EXCEPTION);
+        }
+        return result;
+    }
+
+
     private InterfaceResult create(DataBase base, User user) {
 
         InterfaceResult result = null;
