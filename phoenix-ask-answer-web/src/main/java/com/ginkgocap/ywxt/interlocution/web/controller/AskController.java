@@ -328,25 +328,27 @@ public class AskController extends BaseController{
      */
     private List<Question> convertList(List<Question> questionList, long currentUserId) {
 
-        for (Question question : questionList) {
-            long userId = question.getUserId();
-            User user = userService.selectByPrimaryKey(userId);
-            question.setUserName(user.getName());
-            question.setPicPath(user.getPicPath());
-            PartAnswer topAnswer = question.getTopAnswer();
-            if (topAnswer != null) {
-                long answererId = topAnswer.getAnswererId();
-                long answerId = topAnswer.getAnswerId();
-                User answerer = userService.selectByPrimaryKey(answererId);
-                if (answerer == null) {
-                    logger.error("invoke userService failed ! method selectByPrimaryKey , userId : [" + answererId + "]");
-                } else {
-                    topAnswer.setAnswererName(answerer.getName());
-                    topAnswer.setAnswererPicPath(answerer.getPicPath());
-                    boolean existPraise = this.isExistPraise(answerId, currentUserId);
-                    topAnswer.setIsPraise((byte)(existPraise ? 1 : 0));
-                    Set<String> praiseUIdSet = this.getPraiseUIdSet(answerId);
-                    topAnswer.setPraiseCount(praiseUIdSet.size());
+        if (CollectionUtils.isNotEmpty(questionList)) {
+            for (Question question : questionList) {
+                long userId = question.getUserId();
+                User user = userService.selectByPrimaryKey(userId);
+                question.setUserName(user.getName());
+                question.setPicPath(user.getPicPath());
+                PartAnswer topAnswer = question.getTopAnswer();
+                if (topAnswer != null) {
+                    long answererId = topAnswer.getAnswererId();
+                    long answerId = topAnswer.getAnswerId();
+                    User answerer = userService.selectByPrimaryKey(answererId);
+                    if (answerer == null) {
+                        logger.error("invoke userService failed ! method selectByPrimaryKey , userId : [" + answererId + "]");
+                    } else {
+                        topAnswer.setAnswererName(answerer.getName());
+                        topAnswer.setAnswererPicPath(answerer.getPicPath());
+                        boolean existPraise = this.isExistPraise(answerId, currentUserId);
+                        topAnswer.setIsPraise((byte)(existPraise ? 1 : 0));
+                        Set<String> praiseUIdSet = this.getPraiseUIdSet(answerId);
+                        topAnswer.setPraiseCount(praiseUIdSet.size());
+                    }
                 }
             }
         }
