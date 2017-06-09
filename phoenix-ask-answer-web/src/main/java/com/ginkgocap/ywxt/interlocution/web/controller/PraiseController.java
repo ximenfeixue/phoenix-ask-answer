@@ -65,6 +65,7 @@ public class PraiseController extends BaseController{
         Answer answer = null;
         Question question = null;
         List<PartAnswer> partAnswerList = null;
+
         User user = this.getUser(request);
         if (user == null) {
             return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PERMISSION_EXCEPTION);
@@ -75,6 +76,21 @@ public class PraiseController extends BaseController{
         } catch (Exception e) {
             e.printStackTrace();
             return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_EXCEPTION);
+        }
+        if (praise.getAnswerId() < 0) {
+            logger.error("answerId is error");
+            return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_EXCEPTION);
+        }
+        try {
+            Praise dbPraise = praiseService.getPraiseByUIdAnswerId(praise.getAnswerId(), user.getId());
+            if (dbPraise != null) {
+                result = InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_EXCEPTION);
+                result.getNotification().setNotifInfo("同一用户只能点赞一次");
+                return result;
+            }
+        } catch (Exception e) {
+            logger.error("invoke praise service failed! method : [ getPraiseByUIdAnswerId ]");
+            return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_DB_OPERATION_EXCEPTION);
         }
         // 补全 praise
         praise.setAdmirerId(user.getId());
@@ -159,18 +175,43 @@ public class PraiseController extends BaseController{
 
         InterfaceResult result = null;
         User user = this.getUser(request);
+        List<PartPraise> remList = new ArrayList<PartPraise>(3);
         if (user == null) {
             return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PERMISSION_EXCEPTION);
         }
         long userId = user.getId();
         try {
             result = praiseService.delete(answerId, userId);
-            // 删除 redis 中 数据
             if ("0".equals(result.getNotification().getNotifCode())) {
+                // 删除 redis 中 数据
                 this.removePraiseUId(answerId, userId);
+                Answer answer = answerService.getAnswerById(answerId);
+                List<PartPraise> partPraiseList = answer.getPartPraiseList();
+                if (CollectionUtils.isNotEmpty(partPraiseList)) {
+                    for (PartPraise partPraise : partPraiseList) {
+                        if (partPraise == null)
+                            continue;
+                        if (partPraise.getAdmirerId() == userId) {
+                            remList.add(partPraise);
+                        }
+                    }
+                }
+                partPraiseList.removeAll(remList);
+                List<Praise> praiseList = praiseService.getPartPraiseUser(answerId, 0, 3);
+                if (CollectionUtils.isNotEmpty(praiseList)) {
+                    PartPraise part = new PartPraise();
+                    for (Praise praise : praiseList) {
+                        if (praise == null)
+                            continue;
+                        convertPartPraise(praise, partPraiseList, part);
+                    }
+                }
+                answer.setPartPraiseList(partPraiseList);
+                // 修改 答案表
+                updateAnswerResult(answer);
             }
         } catch (Exception e) {
-            logger.error("invoke praise service failed! please check service");
+            logger.error("invoke praise service failed! please check service" + e.getMessage());
             return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
         }
         return result;
@@ -251,17 +292,10 @@ public class PraiseController extends BaseController{
             answer.setPraiseCount(set.size());
             if (partPraiseList.size() < 3) {
                 PartPraise partPraise = new PartPraise();
-                partPraise.setAdmirerId(user.getId());
-                partPraise.setAdmirerName(user.getName());
-                partPraise.setAdmirerPicPath(user.getPicPath());
-                final short virtual = user.isVirtual() ? (short) 1 : (short) 0;
-                partPraise.setVirtual(virtual);
-                partPraiseList.add(partPraise);
-                InterfaceResult result = answerService.updateAnswer(answer);
-                if (!"0".equals(result.getNotification().getNotifCode())) {
-                    logger.error("update answer failed! please check answerService ,check provider log");
-                }
+                convertPartPraiseByUser(user, partPraiseList, partPraise);
             }
+            answer.setPartPraiseList(partPraiseList);
+            updateAnswerResult(answer);
         }
     }
 
@@ -315,5 +349,37 @@ public class PraiseController extends BaseController{
             }
         }
         return praiseList;
+    }
+
+    private void updateAnswerResult(Answer answer) {
+
+        InterfaceResult result = answerService.updateAnswer(answer);
+        if (!"0".equals(result.getNotification().getNotifCode())) {
+            logger.error("update answer failed! please check answerService ,check provider log");
+        }
+    }
+
+    private void convertPartPraise(Praise praise, List<PartPraise> partPraiseList, PartPraise part) {
+
+        PartPraise partPraise = part;
+        long admirerId = praise.getAdmirerId();
+        User admireUser = userService.selectByPrimaryKey(admirerId);
+        partPraise.setAdmirerId(admirerId);
+        partPraise.setAdmirerName(admireUser.getName());
+        partPraise.setAdmirerPicPath(admireUser.getPicPath());
+        final short virtual = admireUser.isVirtual() ? (short) 1 : (short) 0;
+        partPraise.setVirtual(virtual);
+        partPraiseList.add(partPraise);
+    }
+
+    private void convertPartPraiseByUser(User user, List<PartPraise> partPraiseList, PartPraise part) {
+
+        PartPraise partPraise = part;
+        partPraise.setAdmirerId(user.getId());
+        partPraise.setAdmirerName(user.getName());
+        partPraise.setAdmirerPicPath(user.getPicPath());
+        final short virtual = user.isVirtual() ? (short) 1 : (short) 0;
+        partPraise.setVirtual(virtual);
+        partPraiseList.add(partPraise);
     }
 }

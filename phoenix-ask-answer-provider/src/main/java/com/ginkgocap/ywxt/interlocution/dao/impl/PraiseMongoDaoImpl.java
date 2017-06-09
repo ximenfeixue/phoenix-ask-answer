@@ -78,4 +78,24 @@ public class PraiseMongoDaoImpl implements PraiseMongoDao {
         Query query = new Query(Criteria.where("answerId").is(answerId));
         return mongoTemplate.count(query, Praise.class, Constant.Collection.PRAISE);
     }
+
+    public Praise getPraiseByUIdAnswerId(long answerId, long userId) throws Exception {
+
+        if (answerId < 0 || userId < 0)
+            throw new IllegalArgumentException("answerId or userId is error");
+        Query query = new Query(Criteria.where(Constant.ANSWERER_ID).is(answerId));
+        query.addCriteria(Criteria.where("admirerId").is(userId));
+        return mongoTemplate.findOne(query, Praise.class, Constant.Collection.PRAISE);
+    }
+
+    public List<Praise> getPartPraiseUser(long answerId, int start, int size) throws Exception {
+
+        if (answerId < 0 || start < 0 || size < 0)
+            throw new IllegalArgumentException("answerId or start or size is error ");
+        Query query = new Query(Criteria.where(Constant.ANSWERER_ID).is(answerId));
+        query.with(new Sort(Sort.Direction.ASC, "admireTime"));
+        query.skip(start);
+        query.limit(size);
+        return mongoTemplate.find(query, Praise.class, Constant.Collection.PRAISE);
+    }
 }

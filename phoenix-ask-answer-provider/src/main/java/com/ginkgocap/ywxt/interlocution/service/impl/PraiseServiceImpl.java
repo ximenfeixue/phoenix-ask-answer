@@ -63,4 +63,16 @@ public class PraiseServiceImpl implements PraiseService {
 
         return praiseMongoDao.countByAnswerId(answerId);
     }
+
+    @Override
+    public Praise getPraiseByUIdAnswerId(long answerId, long userId) throws Exception {
+
+        return praiseMongoDao.getPraiseByUIdAnswerId(answerId, userId);
+    }
+
+    @Override
+    public List<Praise> getPartPraiseUser(long answerId, int start, int size) throws Exception {
+
+        return praiseMongoDao.getPartPraiseUser(answerId, start, size);
+    }
 }

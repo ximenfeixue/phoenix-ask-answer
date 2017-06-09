@@ -17,4 +17,8 @@ public interface PraiseService {
     List<Praise> getPraiseUser(long answerId, int start, int size) throws Exception;
 
     long countByAnswerId(long answerId) throws Exception;
+
+    Praise getPraiseByUIdAnswerId(long answerId, long userId) throws Exception;
+
+    List<Praise> getPartPraiseUser(long answerId, int start, int size) throws Exception;
 }
