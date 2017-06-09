@@ -1,10 +1,7 @@
 package com.ginkgocap.ywxt.interlocution.web.controller;
 
 import com.ginkgocap.parasol.util.JsonUtils;
-import com.ginkgocap.ywxt.interlocution.model.Answer;
-import com.ginkgocap.ywxt.interlocution.model.AnswerBase;
-import com.ginkgocap.ywxt.interlocution.model.DataSync;
-import com.ginkgocap.ywxt.interlocution.model.Question;
+import com.ginkgocap.ywxt.interlocution.model.*;
 import com.ginkgocap.ywxt.interlocution.service.AnswerService;
 import com.ginkgocap.ywxt.interlocution.service.AskService;
 import com.ginkgocap.ywxt.interlocution.service.DataSyncService;
@@ -19,6 +16,7 @@ import com.gintong.ywxt.im.model.MessageNotify;
 import com.gintong.ywxt.im.model.MessageNotifyType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -166,6 +164,81 @@ public class AnswerController extends BaseController{
         }
         if (result.getResponseData() == null) {
             return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_DB_OPERATION_EXCEPTION);
+        }
+        return result;
+    }
+
+    /**
+     * 删除 自己 的答案
+     * @param request
+     * @param id
+     * @return
+     */
+    @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
+    public InterfaceResult delete(HttpServletRequest request, @PathVariable long id) {
+
+        InterfaceResult result;
+        Answer answer = null;
+        Question question = null;
+        User user = this.getUser(request);
+        if (user == null)
+            return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PERMISSION_EXCEPTION);
+        try {
+            answer = answerService.getAnswerById(id);
+        } catch (Exception e) {
+            logger.error("invoke answer service failed! method : [ getAnswerById ]");
+            return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
+        }
+        if (answer == null) {
+            result = InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_EXCEPTION);
+            result.getNotification().setNotifInfo("当前答案不存在或已删除");
+            return result;
+        }
+        long questionId = answer.getQuestionId();
+        try {
+            question = askService.getQuestionById(questionId);
+        } catch (Exception e) {
+            logger.error("invoke ask service failed! method : [ getQuestionById ]" + e.getMessage());
+            return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
+        }
+        if (question == null) {
+            result = InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_EXCEPTION);
+            result.getNotification().setNotifInfo("当前问题不存在或已删除");
+            return result;
+        }
+        try {
+            result = answerService.deleteAnswer(id, user.getId());
+        } catch (Exception e) {
+            logger.error("invoke answer service failed! method : [ deleteAnswer ]");
+            return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
+        }
+        // 删除 答案成功 后，检查 该答案 是否是 发现页 中 最优答案
+        if ("0".equals(result.getNotification().getNotifCode())) {
+            PartAnswer topAnswer = question.getTopAnswer();
+            if (topAnswer != null && topAnswer.getAnswerId() == id) {
+                //topAnswer = null;
+                Answer answerMaxPraiseCount;
+                try {
+                    answerMaxPraiseCount = answerService.getAnswerMaxPraiseCountByQId(questionId);
+                } catch (Exception e) {
+                    logger.error("invoke answer service failed! method : [ getAnswerMaxPraiseCountByQId ]" + e.getMessage());
+                    return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
+                }
+                if (answerMaxPraiseCount != null) {
+                    topAnswer = convertAnswer(answerMaxPraiseCount);
+                    question.setTopAnswer(topAnswer);
+                }
+                // 修改 问题表
+                try {
+                    InterfaceResult updateResult = askService.updateQuestion(question);
+                    if (!"0".equals(updateResult.getNotification().getNotifCode())) {
+                        logger.error("update question failed! please check askService, check provider log");
+                    }
+                } catch (Exception e) {
+                    logger.error("invoke ask service failed! method : [ updateQuestion ]");
+                    return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
+                }
+            }
         }
         return result;
     }

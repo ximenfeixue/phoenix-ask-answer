@@ -104,4 +104,11 @@ public interface AskService {
      * @return
      */
     InterfaceResult deleteQuestion(long id);
+
+    /**
+     * 删除 问题 只能 删除自己的
+     * @param id
+     * @return
+     */
+    InterfaceResult deleteQuestion(long id, long userId);
 }

@@ -116,4 +116,16 @@ public class AnswerMongoDaoImpl implements AnswerMongoDao {
         query.limit(1);
         return mongoTemplate.findOne(query, Answer.class, Constant.Collection.ANSWER);
     }
+
+    public boolean deleteAnswer(long id, long userId) throws Exception {
+
+        if (id < 0 || userId < 0)
+            throw new IllegalArgumentException("id < 0 or userId < 0 is error");
+        Query query = new Query(Criteria.where(Constant._ID).is(id));
+        query.addCriteria(Criteria.where("answererId").is(userId));
+        Answer removeAnswer = mongoTemplate.findAndRemove(query, Answer.class, Constant.Collection.ANSWER);
+        if (removeAnswer == null)
+            logger.error("removeAnswer is not exist!");
+        return removeAnswer != null;
+    }
 }

@@ -68,16 +68,18 @@ public class AskController extends BaseController{
             return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_EXCEPTION);
         }
         result = this.create(base, user);
-        long questionId = Long.valueOf(result.getResponseData().toString());
+        if ("0".equals(result.getNotification().getNotifCode())) {
+            long questionId = Long.valueOf(result.getResponseData().toString());
 
-        /** save asso **/
-        List<Associate> associateList = base.getAssociateList();
-        if (CollectionUtils.isNotEmpty(associateList)) {
-            List<Associate> saveAssociateList = associateServiceLocal.createAssociate(associateList, questionId, user);
-            if (CollectionUtils.isEmpty(saveAssociateList)) {
-                logger.error("insert asso failed! please check associate service!");
-                // 并不是主要逻辑， 不抛出异常
-                //return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_DB_OPERATION_EXCEPTION);
+            /** save asso **/
+            List<Associate> associateList = base.getAssociateList();
+            if (CollectionUtils.isNotEmpty(associateList)) {
+                List<Associate> saveAssociateList = associateServiceLocal.createAssociate(associateList, questionId, user);
+                if (CollectionUtils.isEmpty(saveAssociateList)) {
+                    logger.error("insert asso failed! please check associate service!");
+                    // 并不是主要逻辑， 不抛出异常
+                    //return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_DB_OPERATION_EXCEPTION);
+                }
             }
         }
         return result;
@@ -231,8 +233,8 @@ public class AskController extends BaseController{
         if (user == null)
             return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PERMISSION_EXCEPTION);
         try {
-            logger.info("delete question id = " + id);
-            result = askService.deleteQuestion(id);
+            logger.info("delete question id = " + id + " userId : " + user.getId());
+            result = askService.deleteQuestion(id, user.getId());
         } catch (Exception e) {
             logger.error("invoke ask service failed! method [ deleteQuestion ] id:" + id);
             return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_DB_OPERATION_EXCEPTION);
@@ -240,6 +242,48 @@ public class AskController extends BaseController{
         return result;
     }
 
+    /**
+     * 修改 问题
+     * @param request
+     * @param id
+     * @return
+     */
+    @RequestMapping(value = "/{id}", method = RequestMethod.PUT)
+    public InterfaceResult update(HttpServletRequest request, @PathVariable long id) {
+
+        InterfaceResult result;
+        String requestJson = null;
+        DataBase base = null;
+        Question dbQuestion = null;
+        User user = this.getUser(request);
+        if (user == null)
+            return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PERMISSION_EXCEPTION);
+        try {
+            requestJson = this.getBodyParam(request);
+            base = (DataBase) JsonUtils.jsonToBean(requestJson, DataBase.class);
+        } catch (Exception e) {
+            logger.error("param is null or error");
+            return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_EXCEPTION);
+        }
+        try {
+            dbQuestion = askService.getQuestionById(id);
+        } catch (Exception e) {
+            logger.error("invoke ask service failed! method : [ getQuestionById ]" + e.getMessage());
+            return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
+        }
+        result = updateQuestion(base, dbQuestion);
+        if ("0".equals(result.getNotification().getNotifCode())) {
+            // 修改 关联
+            /** update asso **/
+            InterfaceResult updateResult = associateServiceLocal.updateAssociate(dbQuestion.getId(), user, base);
+            if (!"0".equals(updateResult.getNotification().getNotifCode())) {
+                logger.error("update asso failed! please check associate service!");
+                // 并不是主要逻辑， 不抛出异常
+                //return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_DB_OPERATION_EXCEPTION);
+            }
+        }
+        return result;
+    }
 
     private InterfaceResult create(DataBase base, User user) {
 
@@ -252,6 +296,22 @@ public class AskController extends BaseController{
             result = askService.insert(question);
         } catch (Exception e) {
             e.printStackTrace();
+            return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
+        }
+        return result;
+    }
+
+    private InterfaceResult updateQuestion(DataBase base, Question dbQuestion) {
+
+        InterfaceResult result;
+        Question question = base.getQuestion();
+        if (question == null)
+            return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_EXCEPTION);
+        convertBodyQuestionToDBQuestion(dbQuestion, question);
+        try {
+            result = askService.updateQuestion(dbQuestion);
+        } catch (Exception e) {
+            logger.error("invoke ask service failed! method : [ updateQuestion ]" + e.getMessage());
             return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
         }
         return result;
@@ -392,4 +452,12 @@ public class AskController extends BaseController{
         }
         return collectList;
     }
-}
+
+    private void convertBodyQuestionToDBQuestion(Question dbQuestion, Question question) {
+
+        dbQuestion.setAnswererType(question.getAnswererType());
+        dbQuestion.setType(question.getType());
+        dbQuestion.setTitle(question.getTitle());
+        dbQuestion.setDescribe(question.getDescribe());
+    }
+ }

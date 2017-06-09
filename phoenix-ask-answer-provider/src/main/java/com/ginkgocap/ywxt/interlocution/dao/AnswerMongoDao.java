@@ -61,4 +61,13 @@ public interface AnswerMongoDao {
      * @throws Exception
      */
     Answer getAnswerMaxPraiseCountByQId(long questionId) throws Exception;
+
+    /**
+     * 删除 答案 只能删除自己的
+     * @param id
+     * @param userId
+     * @return
+     * @throws Exception
+     */
+    boolean deleteAnswer(long id, long userId) throws Exception;
 }

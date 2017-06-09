@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import javax.persistence.criteria.CriteriaBuilder;
 import java.util.List;
 
 /**
@@ -112,5 +111,17 @@ public class AnswerServiceImpl implements AnswerService {
     public Answer getAnswerMaxPraiseCountByQId(long questionId) throws Exception {
 
         return answerMongoDao.getAnswerMaxPraiseCountByQId(questionId);
+    }
+
+    @Override
+    public InterfaceResult deleteAnswer(long id, long userId) {
+
+        boolean flag;
+        try {
+            flag = answerMongoDao.deleteAnswer(id, userId);
+        } catch (Exception e) {
+            return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_DB_OPERATION_EXCEPTION);
+        }
+        return InterfaceResult.getSuccessInterfaceResultInstance(flag);
     }
 }

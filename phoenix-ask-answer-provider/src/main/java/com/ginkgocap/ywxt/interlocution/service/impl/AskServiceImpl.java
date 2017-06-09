@@ -150,4 +150,16 @@ public class AskServiceImpl implements AskService {
         }
         return InterfaceResult.getSuccessInterfaceResultInstance(flag);
     }
+
+    @Override
+    public InterfaceResult deleteQuestion(long id, long userId) {
+
+        boolean flag;
+        try {
+            flag = askMongoDao.deleteQuestion(id, userId);
+        } catch (Exception e) {
+            return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_DB_OPERATION_EXCEPTION);
+        }
+        return InterfaceResult.getSuccessInterfaceResultInstance(flag);
+    }
 }

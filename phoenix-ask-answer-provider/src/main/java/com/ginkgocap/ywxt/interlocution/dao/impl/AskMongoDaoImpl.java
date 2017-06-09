@@ -182,6 +182,18 @@ public class AskMongoDaoImpl implements AskMongoDao {
         return removeQuestion != null;
     }
 
+    public boolean deleteQuestion(long id, long userId) throws Exception {
+
+        if (id < 0 || userId < 0)
+            throw new IllegalArgumentException("id < 0 or userId < 0 is error");
+        Query query = new Query(Criteria.where(Constant._ID).is(id));
+        query.addCriteria(Criteria.where(Constant.USER_ID).is(userId));
+        Question removeQuestion = mongoTemplate.findAndRemove(query, Question.class, Constant.Collection.QUESTION);
+        if (removeQuestion == null)
+            logger.error("removeQuestion is not exist!");
+        return removeQuestion != null;
+    }
+
     /*public Question addQuestionReadCount(Question question) {
 
         Update update = new Update();

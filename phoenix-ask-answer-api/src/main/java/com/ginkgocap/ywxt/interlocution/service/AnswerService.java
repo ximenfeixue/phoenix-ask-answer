@@ -29,4 +29,6 @@ public interface AnswerService {
     InterfaceResult deleteTop(Answer answer);
 
     Answer getAnswerMaxPraiseCountByQId(long questionId) throws Exception;
+
+    InterfaceResult deleteAnswer(long id, long userId);
 }
