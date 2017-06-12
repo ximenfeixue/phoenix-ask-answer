@@ -23,8 +23,9 @@ public class Question implements Serializable{
     private String describe;
     /**
      * 问题 类型
+     * 1:金融 2：教育 3：医疗 4：人力资源 5：产品开发 6：法律 7：大数据 8：其他
      */
-    private String type;
+    private byte type;
     /**
      * 提问者 id
      */
@@ -185,11 +186,11 @@ public class Question implements Serializable{
         this.readCount = readCount;
     }
 
-    public String getType() {
+    public byte getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(byte type) {
         this.type = type;
     }
 
