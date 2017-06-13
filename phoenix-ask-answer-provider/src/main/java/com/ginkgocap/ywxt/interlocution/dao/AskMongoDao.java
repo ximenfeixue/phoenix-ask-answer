@@ -20,6 +20,8 @@ public interface AskMongoDao {
 
     boolean updateStatus(long id) throws Exception;
 
+    boolean updateStatusAndAnswerCount(long id, byte status, int answerCount) throws Exception;
+
     void update(Question question) throws Exception;
 
     List<Question> getQuestionByUId(long userId, int start, int size) throws Exception;
@@ -37,5 +39,7 @@ public interface AskMongoDao {
     boolean deleteQuestion(long id) throws Exception;
 
     boolean deleteQuestion(long id, long userId) throws Exception;
+
+    Long getReadCount(long id) throws Exception;
 
 }

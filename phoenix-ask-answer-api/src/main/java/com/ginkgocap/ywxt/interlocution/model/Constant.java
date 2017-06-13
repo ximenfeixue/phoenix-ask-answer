@@ -33,5 +33,6 @@ public class Constant {
     public final static String ANSWER_ID = "answerId";
     public final static String USER_ID = "userId";
     public final static String ANSWERER_ID = "answererId";
+    public final static String READ_COUNT_TAG = "ask_answer_readCount_";
 
 }

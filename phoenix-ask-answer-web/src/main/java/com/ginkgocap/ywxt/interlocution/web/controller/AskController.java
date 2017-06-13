@@ -149,6 +149,7 @@ public class AskController extends BaseController{
             return jacksonValue;
         }
         Question question = base.getQuestion();
+        setReadCountByRedis(question);
         convertQuestionUser(question, userId);
         List<Answer> answerList = base.getAnswerList();
         if (CollectionUtils.isNotEmpty(answerList)) {
@@ -347,7 +348,9 @@ public class AskController extends BaseController{
                         boolean existPraise = this.isExistPraise(answerId, currentUserId);
                         topAnswer.setIsPraise((byte)(existPraise ? 1 : 0));
                         Set<String> praiseUIdSet = this.getPraiseUIdSet(answerId);
-                        topAnswer.setPraiseCount(praiseUIdSet.size());
+                        if (CollectionUtils.isNotEmpty(praiseUIdSet)) {
+                            topAnswer.setPraiseCount(praiseUIdSet.size());
+                        }
                     }
                 }
             }
@@ -372,9 +375,11 @@ public class AskController extends BaseController{
         try {
             collect = askService.getCollectByUIdQuestionId(currentUId, id);
         } catch (Exception e) {
-            logger.error("invoke ask service failed! method: [ getCollectByUIdQuestionId ]");
+            logger.error("invoke ask service failed! method: [ getCollectByUIdQuestionId ] id :" + id);
         }
         question.setIsCollect((byte)(collect == null ? 0 : 1));
+        // set answerCount will go :ask_answer_answerCount_
+        question.setAnswerCount(this.getAnswerCountByRedis(id));
     }
 
     /**
@@ -400,7 +405,9 @@ public class AskController extends BaseController{
                 boolean existPraise = this.isExistPraise(id, currentUserId);
                 answer.setIsPraise((byte)(existPraise ? 1 : 0));
                 Set<String> praiseUIdSet = this.getPraiseUIdSet(id);
-                answer.setPraiseCount(praiseUIdSet.size());
+                if (CollectionUtils.isNotEmpty(praiseUIdSet)) {
+                    answer.setPraiseCount(praiseUIdSet.size());
+                }
             }
         }
         return answerList;
@@ -434,7 +441,9 @@ public class AskController extends BaseController{
                 boolean existPraise = this.isExistPraise(id, user.getId());
                 answer.setIsPraise((byte)(existPraise ? 1 : 0));
                 Set<String> praiseUIdSet = this.getPraiseUIdSet(id);
-                answer.setPraiseCount(praiseUIdSet.size());
+                if (CollectionUtils.isNotEmpty(praiseUIdSet)) {
+                    answer.setPraiseCount(praiseUIdSet.size());
+                }
             }
         }
         return questionHomeList;
@@ -462,4 +471,46 @@ public class AskController extends BaseController{
         dbQuestion.setTitle(question.getTitle());
         dbQuestion.setDescribe(question.getDescribe());
     }
- }
+
+    private void setReadCountByRedis(Question question) {
+
+        long count = 0;
+        long id = question.getId();
+        Long readCount = getReadCountByRedis(id);
+        if (readCount != null && readCount.longValue() != 0) {
+            count = cache.incr(Constant.READ_COUNT_TAG + id);
+            if (count < 1) {
+                logger.error("invoke redis cache service failed! please check redis ....");
+            } else {
+                // 修改问题 浏览数
+                question.setReadCount(count);
+                try {
+                    askService.updateQuestion(question);
+                } catch (Exception e) {
+                    logger.error("invoke ask service failed! method : [ updateQuestion ]");
+                }
+            }
+        }
+        //question.setReadCount(count);
+    }
+
+    private Long getReadCountByRedis(long id) {
+
+        Long readCount = (Long) cache.getByRedis(Constant.READ_COUNT_TAG + id);
+        if (readCount == null || readCount.longValue() == 0) {
+            try {
+                readCount = askService.getReadCount(id);
+            } catch (Exception e) {
+                logger.error("invoke ask service failed! method : [ getReadCount ] id : " + id);
+            }
+            if (readCount == null) {
+                return 0l;
+            }
+            boolean flag = cache.setByRedis(Constant.READ_COUNT_TAG + id, readCount, 60 * 60 * 24);
+            if (!flag) {
+                logger.error("invoke redis cache service failed! please check redis ....");
+            }
+        }
+        return readCount;
+    }
+}

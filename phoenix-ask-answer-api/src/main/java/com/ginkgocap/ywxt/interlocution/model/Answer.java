@@ -190,4 +190,9 @@ public class Answer implements Serializable{
     public void setIsPraise(byte isPraise) {
         this.isPraise = isPraise;
     }
+
+    public int addPraiseCount(int praiseCount) {
+        this.praiseCount = praiseCount++;
+        return this.praiseCount;
+    }
 }

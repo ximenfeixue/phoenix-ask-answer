@@ -67,7 +67,7 @@ public class Question implements Serializable{
     /**
      * 问题 浏览数
      */
-    private int readCount = 0;
+    private long readCount = 0;
     /**
      * 发现 首页中 与问题一起显示的 答案
      */
@@ -178,11 +178,11 @@ public class Question implements Serializable{
         this.answerCount = answerCount;
     }
 
-    public int getReadCount() {
+    public long getReadCount() {
         return readCount;
     }
 
-    public void setReadCount(int readCount) {
+    public void setReadCount(long readCount) {
         this.readCount = readCount;
     }
 
@@ -216,5 +216,17 @@ public class Question implements Serializable{
 
     public void setIsCollect(byte isCollect) {
         this.isCollect = isCollect;
+    }
+
+    public int addAnswerCount(int answerCount) {
+
+        this.answerCount = answerCount++;
+        return this.answerCount;
+    }
+
+    public int minusAnswerCount(int answerCount) {
+
+        this.answerCount = answerCount--;
+        return this.answerCount;
     }
 }

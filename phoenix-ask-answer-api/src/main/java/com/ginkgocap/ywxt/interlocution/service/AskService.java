@@ -48,6 +48,14 @@ public interface AskService {
      */
     boolean updateStatus(long id) throws Exception;
     /**
+     * 修改 问题 是否被回答 和 答案数
+     * @param id
+     * @param status
+     * @return
+     * @throws Exception
+     */
+    boolean updateStatusAndAnswerCount(long id, byte status, int answerCount) throws Exception;
+    /**
      * 修改 问题
      * @param question
      * @return
@@ -111,4 +119,12 @@ public interface AskService {
      * @return
      */
     InterfaceResult deleteQuestion(long id, long userId);
+
+    /**
+     * 查看 阅读数
+     * @param id
+     * @return
+     * @throws Exception
+     */
+    Long getReadCount(long id) throws Exception;
 }

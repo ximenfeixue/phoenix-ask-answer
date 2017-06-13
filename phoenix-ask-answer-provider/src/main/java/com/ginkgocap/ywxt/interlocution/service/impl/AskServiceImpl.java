@@ -71,6 +71,12 @@ public class AskServiceImpl implements AskService {
     }
 
     @Override
+    public boolean updateStatusAndAnswerCount(long id, byte status, int answerCount) throws Exception {
+
+        return askMongoDao.updateStatusAndAnswerCount(id, status, answerCount);
+    }
+
+    @Override
     public InterfaceResult updateQuestion(Question question) {
 
         try {
@@ -161,5 +167,17 @@ public class AskServiceImpl implements AskService {
             return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_DB_OPERATION_EXCEPTION);
         }
         return InterfaceResult.getSuccessInterfaceResultInstance(flag);
+    }
+
+    @Override
+    public Long getReadCount(long id) throws Exception {
+
+        Long readCount = null;
+        try {
+            readCount = askMongoDao.getReadCount(id);
+        } catch (Exception e) {
+            logger.error("mongo find failed! method : [ getReadCount ]  id :" + id);
+        }
+        return readCount;
     }
 }

@@ -90,6 +90,16 @@ public class AskMongoDaoImpl implements AskMongoDao {
         return question != null;
     }
 
+    public boolean updateStatusAndAnswerCount(long id, byte status, int answerCount) throws Exception {
+
+        Query query = new Query(Criteria.where(Constant._ID).is(id));
+        Update update = new Update();
+        update.set("status", status);
+        update.set("answerCount", answerCount);
+        Question question = mongoTemplate.findAndModify(query, update, Question.class, Constant.Collection.QUESTION);
+        return question != null;
+    }
+
     public void update(Question question) throws Exception {
 
         if (question == null) {
@@ -192,6 +202,14 @@ public class AskMongoDaoImpl implements AskMongoDao {
         if (removeQuestion == null)
             logger.error("removeQuestion is not exist!");
         return removeQuestion != null;
+    }
+
+    public Long getReadCount(long id) throws Exception {
+
+        if (id < 0)
+            throw new IllegalArgumentException("id < 0 param is error");
+        Question question = mongoTemplate.findById(id, Question.class, Constant.Collection.QUESTION);
+        return question != null ? question.getReadCount() : null;
     }
 
     /*public Question addQuestionReadCount(Question question) {

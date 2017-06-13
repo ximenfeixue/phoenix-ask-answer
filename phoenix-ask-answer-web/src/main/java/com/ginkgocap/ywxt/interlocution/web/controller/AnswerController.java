@@ -123,25 +123,29 @@ public class AnswerController extends BaseController{
             logger.error("invoke answerService failed : method :[ create ]");
             return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
         }
-        // WILL do send message
+
         if (result.getResponseData() != null && (Long)result.getResponseData() > 0) {
+            // WILL do send message
             if (user.getId() != answer.getToId()) {
                 MessageNotify message = createMessageNotify(answer, dbUser);
                 dataSyncTask.saveDataNeedSync(new DataSync(0l, message));
             } else {
                 logger.info("respond self question ! so skip create message!");
             }
-        }
-        // update question status
-        try {
-            boolean flag = askService.updateStatus(questionId);
-            if (!flag) {
-                logger.error("update status failed! method :[updateStatus]");
+            // update question status and answerCount
+            byte status = 1;
+            int answerCount = (int)addAnswerCountByRedis(questionId);
+            try {
+                boolean flag = askService.updateStatusAndAnswerCount(questionId, status, answerCount);
+                if (!flag) {
+                    logger.error("update status = 1 failed! method :[ updateStatusAndAnswerCount ]");
+                }
+            } catch (Exception e) {
+                logger.error("invoke askService failed! method :[ updateStatusAndAnswerCount ]");
+                return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_DB_OPERATION_EXCEPTION);
             }
-        } catch (Exception e) {
-            logger.error("invoke askService failed! method :[" + "updateStatus]");
-            return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_DB_OPERATION_EXCEPTION);
         }
+
         return result;
     }
 
@@ -228,7 +232,7 @@ public class AnswerController extends BaseController{
                     topAnswer = convertAnswer(answerMaxPraiseCount);
                     question.setTopAnswer(topAnswer);
                 }
-                // 修改 问题表
+                // 修改 问题表 中 topAnswer
                 try {
                     InterfaceResult updateResult = askService.updateQuestion(question);
                     if (!"0".equals(updateResult.getNotification().getNotifCode())) {
@@ -238,6 +242,21 @@ public class AnswerController extends BaseController{
                     logger.error("invoke ask service failed! method : [ updateQuestion ]");
                     return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
                 }
+            }
+            // 修改 问题表 中 status and answerCount 字段
+            int answerCount = (int)minusAnswerCountByRedis(questionId);
+            byte status = 0;
+            if (answerCount > 0) {
+                status = 1;
+            }
+            try {
+                boolean flag = askService.updateStatusAndAnswerCount(questionId, status, answerCount);
+                if (!flag) {
+                    logger.error("update status = 0 failed! method :[ updateStatusAndAnswerCount ]");
+                }
+            } catch (Exception e) {
+                logger.error("invoke askService failed! method :[ updateStatusAndAnswerCount ]");
+                return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_DB_OPERATION_EXCEPTION);
             }
         }
         return result;

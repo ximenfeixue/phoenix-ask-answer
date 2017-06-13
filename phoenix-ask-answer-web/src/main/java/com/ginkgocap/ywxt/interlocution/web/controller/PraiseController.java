@@ -126,11 +126,12 @@ public class PraiseController extends BaseController{
                 return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
             }
             // 放到 redis 中 key：answerId value: userId
-            addPraiseUId2Redis(answerId, user.getId());
+            int praiseCount = addPraiseUId2Redis(answerId, user.getId());
 
             // 更新答案表
+            Answer updateAnswer = null;
             try {
-                updateAnswer(dbUser, answer);
+                updateAnswer = updateAnswer(dbUser, answer, praiseCount);
 
             } catch (Exception e) {
                 logger.error("invoke answer service failed! method :[ getAnswerById, updateAnswer ]");
@@ -148,7 +149,7 @@ public class PraiseController extends BaseController{
                 return result;
             }
             try {
-                updateQuestion(question, answer);
+                updateQuestion(question, updateAnswer, user.getId());
 
             } catch (Exception e) {
                 logger.error("invoke askService failed! update question");
@@ -279,7 +280,7 @@ public class PraiseController extends BaseController{
         return map;
     }
 
-    private void updateAnswer(User user, Answer answer) throws Exception{
+    private Answer updateAnswer(User user, Answer answer, int praiseCount) throws Exception{
 
         if (answer != null) {
 
@@ -289,7 +290,12 @@ public class PraiseController extends BaseController{
             }
             // 重新 设置 praiseCount 通过 redis 得到 点赞者的 size
             Set<String> set = this.getPraiseUIdSet(answer.getId());
-            answer.setPraiseCount(set.size());
+            //int praiseCount = answer.getPraiseCount();
+            if (CollectionUtils.isNotEmpty(set) && set.size() > praiseCount) {
+                answer.setPraiseCount(set.size());
+            } else {
+                answer.setPraiseCount(praiseCount);
+            }
             if (partPraiseList.size() < 3) {
                 PartPraise partPraise = new PartPraise();
                 convertPartPraiseByUser(user, partPraiseList, partPraise);
@@ -297,9 +303,10 @@ public class PraiseController extends BaseController{
             answer.setPartPraiseList(partPraiseList);
             updateAnswerResult(answer);
         }
+        return answer;
     }
 
-    private void updateQuestion(Question question, Answer answer) {
+    private void updateQuestion(Question question, Answer answer, long userId) {
 
         PartAnswer topAnswer = null;
         try {
@@ -319,7 +326,11 @@ public class PraiseController extends BaseController{
                         updateTopQuestion(question);
                     }
                 } else {
-                // 最优答案 是置顶的不进行修改
+                // 最优答案 是置顶的 只修改 点赞数
+                    int praiseCount = this.addPraiseUId2Redis(answer.getId(), userId);
+                    topAnswer.setPraiseCount(praiseCount);
+                    question.setTopAnswer(topAnswer);
+                    updateTopQuestion(question);
                 }
             }
         } catch (Exception e) {
