@@ -68,7 +68,7 @@ public class AskMongoDaoImpl implements AskMongoDao {
         if (start + size > count) {
             size = (int)count - start;
         }
-        query.with(new Sort(Sort.Direction.DESC, Constant.TOP).and(new Sort(Sort.Direction.DESC, Constant.READ_COUNT).and(new Sort(Sort.Direction.ASC, Constant.CREATE_TIME))));
+        query.with(new Sort(Sort.Direction.DESC, Constant.TOP).and(new Sort(Sort.Direction.DESC, Constant.CREATE_TIME)));
         query.skip(index);
         query.limit(size);
         return mongoTemplate.find(query, Question.class, Constant.Collection.QUESTION);
