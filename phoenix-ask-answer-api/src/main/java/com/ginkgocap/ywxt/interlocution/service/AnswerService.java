@@ -31,4 +31,8 @@ public interface AnswerService {
     Answer getAnswerMaxPraiseCountByQId(long questionId) throws Exception;
 
     InterfaceResult deleteAnswer(long id, long userId);
+
+    long countAnswerByUId(long userId) throws Exception;
+
+    List<Long> getAnswererIdListSet() throws Exception;
 }

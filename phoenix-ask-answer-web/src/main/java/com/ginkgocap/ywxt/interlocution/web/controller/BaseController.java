@@ -174,6 +174,7 @@ public abstract class BaseController {
 
 	/**
 	 * 将 点赞者id 放到 redis中
+	 * 不设置 过期时间
 	 * @param answerId 作为key
 	 * @param userId 作为 value
 	 */
@@ -192,10 +193,10 @@ public abstract class BaseController {
 				praiseCount = answer.getPraiseCount();
 				praiseCount = answer.addPraiseCount(praiseCount);
 			}
-			cache.saddRedis("ask_answer_praise_" + answerId, 60 * 60 * 24, "" + userId);
+			cache.saddRedis("ask_answer_praise_" + answerId, -1, "" + userId);
 			return praiseCount;
 		}
-		cache.saddRedis("ask_answer_praise_" + answerId, 60 * 60 * 24, "" + userId);
+		cache.saddRedis("ask_answer_praise_" + answerId, -1, "" + userId);
 		set = cache.smembersRedis("ask_answer_praise_" + answerId);
 		return set.size();
 	}
@@ -234,7 +235,7 @@ public abstract class BaseController {
 				return false;
 			}
 			// 同步数据
-			updateRedisByMongo(answerId);
+			//updateRedisByMongo(answerId);
 			existPraise = cache.sismemberRedis("ask_answer_praise_" + answerId, "" + userId);
 		}
 		return existPraise;

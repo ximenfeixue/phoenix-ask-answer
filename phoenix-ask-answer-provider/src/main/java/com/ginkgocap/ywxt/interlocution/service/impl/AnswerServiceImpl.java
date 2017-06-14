@@ -124,4 +124,16 @@ public class AnswerServiceImpl implements AnswerService {
         }
         return InterfaceResult.getSuccessInterfaceResultInstance(flag);
     }
+
+    @Override
+    public long countAnswerByUId(long userId) throws Exception {
+
+        return answerMongoDao.countAnswerByUId(userId);
+    }
+
+    @Override
+    public List<Long> getAnswererIdListSet() throws Exception {
+
+        return answerMongoDao.getAnswererIdListSet();
+    }
 }

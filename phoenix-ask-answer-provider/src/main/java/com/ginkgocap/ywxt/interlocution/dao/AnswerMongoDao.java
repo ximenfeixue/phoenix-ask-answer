@@ -70,4 +70,19 @@ public interface AnswerMongoDao {
      * @throws Exception
      */
     boolean deleteAnswer(long id, long userId) throws Exception;
+
+    /**
+     * 查询 用户 回答数量
+     * @param userId
+     * @return
+     * @throws Exception
+     */
+    long countAnswerByUId(long userId) throws Exception;
+
+    /**
+     * 查询 表中 所有回答者 id
+     * @return
+     * @throws Exception
+     */
+    List<Long> getAnswererIdListSet() throws Exception;
 }
