@@ -148,7 +148,6 @@ public class AnswerController extends BaseController{
                 return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_DB_OPERATION_EXCEPTION);
             }
         }
-
         return result;
     }
 

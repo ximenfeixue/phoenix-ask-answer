@@ -83,7 +83,7 @@ public class PraiseMongoDaoImpl implements PraiseMongoDao {
 
         if (answerId < 0 || userId < 0)
             throw new IllegalArgumentException("answerId or userId is error");
-        Query query = new Query(Criteria.where(Constant.ANSWERER_ID).is(answerId));
+        Query query = new Query(Criteria.where(Constant.ANSWER_ID).is(answerId));
         query.addCriteria(Criteria.where("admirerId").is(userId));
         return mongoTemplate.findOne(query, Praise.class, Constant.Collection.PRAISE);
     }
@@ -92,7 +92,7 @@ public class PraiseMongoDaoImpl implements PraiseMongoDao {
 
         if (answerId < 0 || start < 0 || size < 0)
             throw new IllegalArgumentException("answerId or start or size is error ");
-        Query query = new Query(Criteria.where(Constant.ANSWERER_ID).is(answerId));
+        Query query = new Query(Criteria.where(Constant.ANSWER_ID).is(answerId));
         query.with(new Sort(Sort.Direction.ASC, "admireTime"));
         query.skip(start);
         query.limit(size);

@@ -35,4 +35,6 @@ public interface AnswerService {
     long countAnswerByUId(long userId) throws Exception;
 
     List<Long> getAnswererIdListSet() throws Exception;
+
+    int countAnswerByQuestionId(long questionId) throws Exception;
 }

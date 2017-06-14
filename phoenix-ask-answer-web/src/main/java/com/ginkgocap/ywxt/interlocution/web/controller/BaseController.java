@@ -297,6 +297,7 @@ public abstract class BaseController {
 	 */
 	protected int getAnswerCountByRedis(long id) {
 
+		LOGGER.info("getAnswerCountByRedis start ....");
 		Question question = null;
 		int count = 0;
 		Long answerCount = (Long)cache.getByRedis(ASK_ANSWER_ANSWERCOUNT_ + id);
@@ -308,12 +309,22 @@ public abstract class BaseController {
 			}
 			if (question != null) {
 				count = question.getAnswerCount();
+				// 确认 数据的准确性
+				if (count < 1) {
+					try {
+						count = answerService.countAnswerByQuestionId(id);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
 			}
 			answerCount = Long.valueOf(count);
-			boolean flag = cache.setByRedis(ASK_ANSWER_ANSWERCOUNT_ + id, answerCount, 24 * 60 * 60);
+			LOGGER.info("answerCount : " + answerCount);
+			boolean flag = cache.setByRedis(ASK_ANSWER_ANSWERCOUNT_ + id, answerCount.longValue(), 24 * 60 * 60);
 			if (!flag) {
 				LOGGER.error("redis set failed! id:" + ASK_ANSWER_ANSWERCOUNT_ + id);
 			}
+			LOGGER.info("getAnswerCountByRedis end ...");
 		}
 		return Integer.valueOf(answerCount.toString());
 	}
@@ -327,7 +338,9 @@ public abstract class BaseController {
 
 		// 保证 redis 中 key 不失效
 		int answerCount = getAnswerCountByRedis(id);
-		return cache.incr(ASK_ANSWER_ANSWERCOUNT_ + id);
+		LOGGER.info("answerCount : " + answerCount);
+		Long incr = cache.incr(ASK_ANSWER_ANSWERCOUNT_ + id);
+		return incr;
 
 	}
 	/**
@@ -339,7 +352,8 @@ public abstract class BaseController {
 
 		// 保证 redis 中 key 不失效
 		int answerCount = getAnswerCountByRedis(id);
-		return cache.decr(ASK_ANSWER_ANSWERCOUNT_ + id);
+		LOGGER.info("answerCount : " + answerCount);
+		Long decr = cache.decr(ASK_ANSWER_ANSWERCOUNT_ + id);
+		return decr;
 	}
-	//abstract Logger logger();
 }

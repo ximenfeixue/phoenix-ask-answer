@@ -229,4 +229,12 @@ public class Question implements Serializable{
         this.answerCount = answerCount--;
         return this.answerCount;
     }
+
+    @Override
+    public String toString() {
+        return "Question{" +
+                "answerCount=" + answerCount +
+                ", readCount=" + readCount +
+                '}';
+    }
 }

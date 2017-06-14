@@ -169,4 +169,13 @@ public class AnswerMongoDaoImpl implements AnswerMongoDao {
         List<Long> list = new ArrayList<Long>(set);
         return list;
     }
+
+    public int countAnswerByQuestionId(long questionId) throws Exception {
+
+        if (questionId < 0)
+            throw new IllegalArgumentException("questionId is error");
+        Query query = new Query(Criteria.where("questionId").is(questionId));
+        long count = mongoTemplate.count(query, Answer.class, Constant.Collection.ANSWER);
+        return (int)count;
+    }
 }

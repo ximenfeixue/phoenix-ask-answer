@@ -479,7 +479,7 @@ public class AskController extends BaseController{
         long count = 0;
         long id = question.getId();
         Long readCount = getReadCountByRedis(id);
-        if (readCount != null && readCount.longValue() != 0) {
+        if (readCount != null) {
             count = cache.incr(Constant.READ_COUNT_TAG + id);
             if (count < 1) {
                 logger.error("invoke redis cache service failed! please check redis ....");
@@ -488,7 +488,7 @@ public class AskController extends BaseController{
                 question.setReadCount(count);
                 try {
                     askService.updateQuestion(question);
-
+                    logger.info("question:" + question.toString());
                 } catch (Exception e) {
                     logger.error("invoke ask service failed! method : [ updateQuestion ]");
                 }
@@ -509,7 +509,7 @@ public class AskController extends BaseController{
             if (readCount == null) {
                 return 0l;
             }
-            boolean flag = cache.setByRedis(Constant.READ_COUNT_TAG + id, readCount, 60 * 60 * 24);
+            boolean flag = cache.setByRedis(Constant.READ_COUNT_TAG + id, readCount.longValue(), 60 * 60 * 24);
             if (!flag) {
                 logger.error("invoke redis cache service failed! please check redis ....");
             }

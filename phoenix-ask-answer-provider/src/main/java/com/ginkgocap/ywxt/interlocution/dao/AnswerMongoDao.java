@@ -85,4 +85,12 @@ public interface AnswerMongoDao {
      * @throws Exception
      */
     List<Long> getAnswererIdListSet() throws Exception;
+
+    /**
+     * 查询 问题的 答案数
+     * @param questionId
+     * @return
+     * @throws Exception
+     */
+    int countAnswerByQuestionId(long questionId) throws Exception;
 }

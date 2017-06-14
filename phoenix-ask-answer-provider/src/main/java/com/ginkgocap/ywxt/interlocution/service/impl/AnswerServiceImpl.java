@@ -136,4 +136,11 @@ public class AnswerServiceImpl implements AnswerService {
 
         return answerMongoDao.getAnswererIdListSet();
     }
+
+    @Override
+    public int countAnswerByQuestionId(long questionId) throws Exception {
+
+        return answerMongoDao.countAnswerByQuestionId(questionId);
+    }
+
 }

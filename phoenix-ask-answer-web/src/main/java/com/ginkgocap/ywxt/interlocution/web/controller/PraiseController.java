@@ -208,6 +208,7 @@ public class PraiseController extends BaseController{
                     }
                 }
                 answer.setPartPraiseList(partPraiseList);
+                answer.setPraiseCount(this.getPraiseUIdSet(answerId).size());
                 // 修改 答案表
                 updateAnswerResult(answer);
             }
