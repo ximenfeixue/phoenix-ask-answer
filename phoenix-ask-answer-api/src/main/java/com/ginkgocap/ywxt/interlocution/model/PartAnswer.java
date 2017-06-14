@@ -54,6 +54,10 @@ public class PartAnswer implements Serializable{
      * 是否 点赞 0：非点赞 1：已点赞
      */
     private byte isPraise;
+    /**
+     * 语音文件
+     */
+    private SpeechFile jtFile;
 
     public long getAnswerId() {
         return answerId;
@@ -133,5 +137,13 @@ public class PartAnswer implements Serializable{
 
     public void setIsPraise(byte isPraise) {
         this.isPraise = isPraise;
+    }
+
+    public SpeechFile getJtFile() {
+        return jtFile;
+    }
+
+    public void setJtFile(SpeechFile jtFile) {
+        this.jtFile = jtFile;
     }
 }

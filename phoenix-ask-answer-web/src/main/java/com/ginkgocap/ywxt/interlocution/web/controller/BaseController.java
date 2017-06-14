@@ -169,6 +169,7 @@ public abstract class BaseController {
 		partAnswer.setType(answer.getType());
 		partAnswer.setVirtual(answer.getVirtual());
 		partAnswer.setTop(answer.getTop());
+		partAnswer.setJtFile(answer.getJtFile());
 		return partAnswer;
 	}
 

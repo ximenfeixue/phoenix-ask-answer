@@ -70,6 +70,10 @@ public class Answer implements Serializable{
      * 是否 点赞 0：非点赞 1：已点赞
      */
     private byte isPraise;
+    /**
+     * 语音文件
+     */
+    private SpeechFile jtFile;
 
     public long getId() {
         return id;
@@ -194,5 +198,13 @@ public class Answer implements Serializable{
     public int addPraiseCount(int praiseCount) {
         this.praiseCount = praiseCount++;
         return this.praiseCount;
+    }
+
+    public SpeechFile getJtFile() {
+        return jtFile;
+    }
+
+    public void setJtFile(SpeechFile jtFile) {
+        this.jtFile = jtFile;
     }
 }
