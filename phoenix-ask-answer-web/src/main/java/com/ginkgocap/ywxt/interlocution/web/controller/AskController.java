@@ -379,7 +379,9 @@ public class AskController extends BaseController{
         }
         question.setIsCollect((byte)(collect == null ? 0 : 1));
         // set answerCount will go :ask_answer_answerCount_
-        question.setAnswerCount(this.getAnswerCountByRedis(id));
+        int answerCount = this.getAnswerCountByRedis(id);
+        question.setAnswerCount(answerCount);
+        logger.info("answerCount" + answerCount + "key: ask_answer_answerCount_" + id);
     }
 
     /**
@@ -486,6 +488,7 @@ public class AskController extends BaseController{
                 question.setReadCount(count);
                 try {
                     askService.updateQuestion(question);
+
                 } catch (Exception e) {
                     logger.error("invoke ask service failed! method : [ updateQuestion ]");
                 }

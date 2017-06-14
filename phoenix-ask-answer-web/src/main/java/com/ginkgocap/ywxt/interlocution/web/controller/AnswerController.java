@@ -135,10 +135,13 @@ public class AnswerController extends BaseController{
             // update question status and answerCount
             byte status = 1;
             int answerCount = (int)addAnswerCountByRedis(questionId);
+            logger.info("answerCount" + answerCount + "key: ask_answer_answerCount_" + questionId);
             try {
                 boolean flag = askService.updateStatusAndAnswerCount(questionId, status, answerCount);
                 if (!flag) {
                     logger.error("update status = 1 failed! method :[ updateStatusAndAnswerCount ]");
+                } else {
+                    logger.info("update status success");
                 }
             } catch (Exception e) {
                 logger.error("invoke askService failed! method :[ updateStatusAndAnswerCount ]");

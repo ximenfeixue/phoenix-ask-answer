@@ -42,6 +42,8 @@ public abstract class BaseController {
 	@Autowired
 	private AnswerService answerService;
 
+	private static final String ASK_ANSWER_ANSWERCOUNT_= "ask_answer_answerCount_";
+
 	/**
 	 * 从body中获得参数
 	 *
@@ -295,41 +297,9 @@ public abstract class BaseController {
 	 */
 	protected int getAnswerCountByRedis(long id) {
 
-		/*List<Answer> answerList = null;
-		List<String> list = new ArrayList<String>();
-		Set<String> set = cache.smembersRedis("ask_answer_answerCount_" + id);
-		int answerCount = 0;
-		if (CollectionUtils.isEmpty(set)) {
-			try {
-				// 用 answer service 通过 questionId查询 个数
-				answerList = answerService.getAnswerListByQuestionId(id, 0, 20);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			if (CollectionUtils.isNotEmpty(answerList)) {
-				for (Answer answer : answerList) {
-					if (answer == null)
-						continue;
-					long answerId = answer.getId();
-					list.add("" + answerId);
-				}
-				answerCount = answerList.size();
-				cache.saddRedis("ask_answer_answerCount_" + id, 24 * 60 * 60, list.toArray(new String[1]));
-			}
-
-			if (answerCount < 1) {
-				return 0;
-			}
-			*//*boolean flag = cache.setByRedis("ask_answer_answerCount_" + id, answerCount, 24 * 60 * 60);
-			if (!flag) {
-				LOGGER.error("invoke redis failed! please check redis server");
-			}*//*
-			return answerCount;
-		}
-		return set.size();*/
 		Question question = null;
 		int count = 0;
-		Long answerCount = (Long)cache.getByRedis("ask_answer_answerCount_" + id);
+		Long answerCount = (Long)cache.getByRedis(ASK_ANSWER_ANSWERCOUNT_ + id);
 		if (null == answerCount || answerCount.longValue() < 1) {
 			try {
 				question = askService.getQuestionById(id);
@@ -340,9 +310,9 @@ public abstract class BaseController {
 				count = question.getAnswerCount();
 			}
 			answerCount = Long.valueOf(count);
-			boolean flag = cache.setByRedis("ask_answer_answerCount_" + id, answerCount, 24 * 60 * 60);
+			boolean flag = cache.setByRedis(ASK_ANSWER_ANSWERCOUNT_ + id, answerCount, 24 * 60 * 60);
 			if (!flag) {
-				LOGGER.error("redis set failed! id:" + "ask_answer_answerCount_" + id);
+				LOGGER.error("redis set failed! id:" + ASK_ANSWER_ANSWERCOUNT_ + id);
 			}
 		}
 		return Integer.valueOf(answerCount.toString());
@@ -355,19 +325,9 @@ public abstract class BaseController {
 	 */
 	protected long addAnswerCountByRedis(long id) {
 
-		/*long answerCount = 0;
-		Set<String> set = cache.smembersRedis("ask_answer_answerCount_" + id);
-		if (CollectionUtils.isNotEmpty(set)) {
-			cache.saddRedis("ask_answer_answerCount_" + id, 24 * 60 * 60, "" + answerId);
-			set = cache.smembersRedis("ask_answer_answerCount_" + id);
-			answerCount = set.size();
-		} else {
-			answerCount = getAnswerCountByRedis(id);
-		}
-		return answerCount;*/
 		// 保证 redis 中 key 不失效
 		int answerCount = getAnswerCountByRedis(id);
-		return cache.incr("ask_answer_answerCount_" + id);
+		return cache.incr(ASK_ANSWER_ANSWERCOUNT_ + id);
 
 	}
 	/**
@@ -377,19 +337,9 @@ public abstract class BaseController {
 	 */
 	protected long minusAnswerCountByRedis(long id) {
 
-		/*long answerCount = 0;
-		Set<String> set = cache.smembersRedis("ask_answer_answerCount_" + id);
-		if (CollectionUtils.isNotEmpty(set)) {
-			cache.sremRedis("ask_answer_answerCount_" + id, "" + answerId);
-			set = cache.smembersRedis("ask_answer_answerCount_" + id);
-			answerCount = set.size();
-		} else {
-			answerCount = getAnswerCountByRedis(id);
-		}
-		return answerCount < 0 ? 0 : answerCount;*/
 		// 保证 redis 中 key 不失效
 		int answerCount = getAnswerCountByRedis(id);
-		return cache.decr("ask_answer_answerCount_" + id);
+		return cache.decr(ASK_ANSWER_ANSWERCOUNT_ + id);
 	}
 	//abstract Logger logger();
 }
