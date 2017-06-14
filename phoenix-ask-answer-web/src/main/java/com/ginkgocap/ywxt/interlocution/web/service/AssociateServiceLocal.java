@@ -46,7 +46,7 @@ public class AssociateServiceLocal {
             try {
                 assoId = associateService.createAssociate(Constant.APP_ID, user.getId(), associate);
                 logger.info("save asso success : id = " + assoId);
-            } catch (AssociateServiceException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
                 return null;
             }

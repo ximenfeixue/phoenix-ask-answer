@@ -255,6 +255,42 @@
             </plugin>
         </plugins>
     </build>
+    <profiles>
+        <profile>
+            <id>snapshotsjar</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <!-- 打jar包并发布到私服 -->
+            <distributionManagement>
+                <snapshotRepository>
+                    <id>Snapshots</id>
+                    <url>http://192.168.101.89:8081/nexus/content/repositories/snapshots/</url>
+                </snapshotRepository>
+            </distributionManagement>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-jar-plugin</artifactId>
+                    </plugin>
+                    <!-- 打jar包到私服 -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
     <scm>
         <connection>scm:git:ssh://git@192.168.101.89/phoenix-ask-answer.git</connection>
         <url>scm:git:ssh://git@192.168.101.89/phoenix-ask-answer.git</url>
