@@ -300,8 +300,8 @@ public abstract class BaseController {
 		LOGGER.info("getAnswerCountByRedis start ....");
 		Question question = null;
 		int count = 0;
-		Long answerCount = (Long)cache.getByRedis(ASK_ANSWER_ANSWERCOUNT_ + id);
-		if (null == answerCount || answerCount.longValue() < 1) {
+		long answerCount = cache.getLongByRedis(ASK_ANSWER_ANSWERCOUNT_ + id);
+		if (answerCount < 1) {
 			try {
 				question = askService.getQuestionById(id);
 			} catch (Exception e) {
@@ -318,15 +318,15 @@ public abstract class BaseController {
 					}
 				}
 			}
-			answerCount = Long.valueOf(count);
+			answerCount = (long) count;
 			LOGGER.info("answerCount : " + answerCount);
-			boolean flag = cache.setByRedis(ASK_ANSWER_ANSWERCOUNT_ + id, answerCount.longValue(), 24 * 60 * 60);
+			boolean flag = cache.setLongByRedis(ASK_ANSWER_ANSWERCOUNT_ + id, answerCount, 24 * 60 * 60);
 			if (!flag) {
 				LOGGER.error("redis set failed! id:" + ASK_ANSWER_ANSWERCOUNT_ + id);
 			}
 			LOGGER.info("getAnswerCountByRedis end ...");
 		}
-		return Integer.valueOf(answerCount.toString());
+		return (int)answerCount;
 	}
 
 	/**
