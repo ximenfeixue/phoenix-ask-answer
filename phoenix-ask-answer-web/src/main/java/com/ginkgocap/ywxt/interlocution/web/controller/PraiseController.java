@@ -188,7 +188,7 @@ public class PraiseController extends BaseController{
                 this.removePraiseUId(answerId, userId);
                 Answer answer = answerService.getAnswerById(answerId);
                 List<PartPraise> partPraiseList = answer.getPartPraiseList();
-                if (CollectionUtils.isNotEmpty(partPraiseList)) {
+                /*if (CollectionUtils.isNotEmpty(partPraiseList)) {
                     for (PartPraise partPraise : partPraiseList) {
                         if (partPraise == null)
                             continue;
@@ -196,15 +196,15 @@ public class PraiseController extends BaseController{
                             remList.add(partPraise);
                         }
                     }
-                }
-                partPraiseList.removeAll(remList);
+                }*/
+                //partPraiseList.removeAll(remList);
+                partPraiseList = new ArrayList<PartPraise>(3);
                 List<Praise> praiseList = praiseService.getPartPraiseUser(answerId, 0, 3);
                 if (CollectionUtils.isNotEmpty(praiseList)) {
-                    PartPraise part = new PartPraise();
                     for (Praise praise : praiseList) {
                         if (praise == null)
                             continue;
-                        convertPartPraise(praise, partPraiseList, part);
+                        convertPartPraise(praise, partPraiseList);
                     }
                 }
                 answer.setPartPraiseList(partPraiseList);
@@ -371,9 +371,9 @@ public class PraiseController extends BaseController{
         }
     }
 
-    private void convertPartPraise(Praise praise, List<PartPraise> partPraiseList, PartPraise part) {
+    private void convertPartPraise(Praise praise, List<PartPraise> partPraiseList) {
 
-        PartPraise partPraise = part;
+        PartPraise partPraise = new PartPraise();
         long admirerId = praise.getAdmirerId();
         User admireUser = userService.selectByPrimaryKey(admirerId);
         partPraise.setAdmirerId(admirerId);

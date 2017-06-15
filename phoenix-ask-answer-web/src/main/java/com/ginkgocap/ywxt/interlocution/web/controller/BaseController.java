@@ -310,13 +310,13 @@ public abstract class BaseController {
 			if (question != null) {
 				count = question.getAnswerCount();
 				// 确认 数据的准确性
-				if (count < 1) {
+				/*if (count < 1) {
 					try {
 						count = answerService.countAnswerByQuestionId(id);
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
-				}
+				}*/
 			}
 			answerCount = (long) count;
 			LOGGER.info("answerCount : " + answerCount);
