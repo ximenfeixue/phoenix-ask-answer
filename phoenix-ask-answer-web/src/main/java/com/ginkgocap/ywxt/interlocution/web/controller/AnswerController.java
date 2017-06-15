@@ -218,6 +218,7 @@ public class AnswerController extends BaseController{
         }
         try {
             result = answerService.deleteAnswer(id, user.getId());
+            logger.info("delete answer success ! id : " + id + " userId : " + user.getId());
         } catch (Exception e) {
             logger.error("invoke answer service failed! method : [ deleteAnswer ]");
             return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);

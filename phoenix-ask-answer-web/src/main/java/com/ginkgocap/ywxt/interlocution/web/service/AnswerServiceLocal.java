@@ -180,6 +180,7 @@ public class AnswerServiceLocal extends BaseController{
     public void afterRemoveAnswer(InterfaceResult result, Question question, long id) {
 
         if ("0".equals(result.getNotification().getNotifCode())) {
+            logger.info("method [ afterRemoveAnswer ] start ......");
             long questionId = question.getId();
             PartAnswer topAnswer = question.getTopAnswer();
             if (topAnswer != null && topAnswer.getAnswerId() == id) {
@@ -191,23 +192,25 @@ public class AnswerServiceLocal extends BaseController{
                 }
                 PartAnswer partAnswer = convertAnswer(maxPraiseCountAnswer);
                 question.setTopAnswer(partAnswer);
-                // 修改 问题表 中 status and answerCount 字段
-                int answerCount = (int)minusAnswerCountByRedis(questionId);
-                byte status = 0;
-                if (answerCount > 0) {
-                    status = 1;
-                } else {
-                    answerCount = 0;
-                }
-                question.setStatus(status);
-                question.setAnswerCount(answerCount);
-                try {
-                    askService.updateQuestion(question);
-
-                } catch (Exception e) {
-                    logger.error("invoke ask service failed! method : [ updateQuestion ]");
-                }
             }
+            // 修改 问题表 中 status and answerCount 字段
+            int answerCount = (int)minusAnswerCountByRedis(questionId);
+            logger.info("answerCount:" + answerCount);
+            byte status = 0;
+            if (answerCount > 0) {
+                status = 1;
+            } else {
+                answerCount = 0;
+            }
+            question.setStatus(status);
+            question.setAnswerCount(answerCount);
+            try {
+                askService.updateQuestion(question);
+
+            } catch (Exception e) {
+                logger.error("invoke ask service failed! method : [ updateQuestion ]");
+            }
+            logger.info("method [ afterRemoveAnswer ] end ......");
         }
     }
 }

@@ -301,6 +301,7 @@ public abstract class BaseController {
 		Question question = null;
 		int count = 0;
 		long answerCount = cache.getLongByRedis(ASK_ANSWER_ANSWERCOUNT_ + id);
+		LOGGER.info("answerCount : " + answerCount + "id:" + id);
 		if (answerCount < 1) {
 			try {
 				question = askService.getQuestionById(id);
@@ -324,8 +325,8 @@ public abstract class BaseController {
 			if (!flag) {
 				LOGGER.error("redis set failed! id:" + ASK_ANSWER_ANSWERCOUNT_ + id);
 			}
-			LOGGER.info("getAnswerCountByRedis end ...");
 		}
+		LOGGER.info("getAnswerCountByRedis end ...");
 		return (int)answerCount;
 	}
 
@@ -354,6 +355,7 @@ public abstract class BaseController {
 		int answerCount = getAnswerCountByRedis(id);
 		LOGGER.info("answerCount : " + answerCount);
 		Long decr = cache.decr(ASK_ANSWER_ANSWERCOUNT_ + id);
+		LOGGER.info("minusAnswerCountByRedis end " + decr.longValue());
 		return decr;
 	}
 }
