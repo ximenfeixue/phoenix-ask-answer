@@ -8,6 +8,7 @@ import com.ginkgocap.ywxt.interlocution.service.DataSyncService;
 import com.ginkgocap.ywxt.interlocution.utils.AskAnswerJsonUtils;
 import com.ginkgocap.ywxt.interlocution.utils.MyStringUtils;
 import com.ginkgocap.ywxt.interlocution.web.Task.DataSyncTask;
+import com.ginkgocap.ywxt.interlocution.web.service.AnswerServiceLocal;
 import com.ginkgocap.ywxt.user.model.User;
 import com.ginkgocap.ywxt.user.service.UserService;
 import com.gintong.frame.util.dto.CommonResultCode;
@@ -49,6 +50,9 @@ public class AnswerController extends BaseController{
 
     @Resource
     private AskService askService;
+
+    @Resource
+    private AnswerServiceLocal answerServiceLocal;
 
     /**
      * 创建 答案
@@ -219,7 +223,9 @@ public class AnswerController extends BaseController{
             return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
         }
         // 删除 答案成功 后，检查 该答案 是否是 发现页 中 最优答案
-        if ("0".equals(result.getNotification().getNotifCode())) {
+        // 删除 答案 成功 后 所做操作
+        answerServiceLocal.afterRemoveAnswer(result, question, id);
+        /*if ("0".equals(result.getNotification().getNotifCode())) {
             PartAnswer topAnswer = question.getTopAnswer();
             if (topAnswer != null && topAnswer.getAnswerId() == id) {
                 //topAnswer = null;
@@ -260,7 +266,7 @@ public class AnswerController extends BaseController{
                 logger.error("invoke askService failed! method :[ updateStatusAndAnswerCount ]");
                 return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_DB_OPERATION_EXCEPTION);
             }
-        }
+        }*/
         return result;
     }
 

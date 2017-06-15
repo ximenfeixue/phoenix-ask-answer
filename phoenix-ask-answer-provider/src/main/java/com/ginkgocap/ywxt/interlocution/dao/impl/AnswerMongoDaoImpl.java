@@ -178,4 +178,13 @@ public class AnswerMongoDaoImpl implements AnswerMongoDao {
         long count = mongoTemplate.count(query, Answer.class, Constant.Collection.ANSWER);
         return (int)count;
     }
+
+    public boolean deleteAnswerById(long id) throws Exception {
+
+        if (id < 0)
+            throw new IllegalArgumentException("id is error! ");
+        Query query = new Query(Criteria.where(Constant._ID).is(id));
+        Answer answer = mongoTemplate.findAndRemove(query, Answer.class);
+        return answer != null;
+    }
 }

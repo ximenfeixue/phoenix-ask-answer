@@ -212,6 +212,28 @@ public class AskMongoDaoImpl implements AskMongoDao {
         return question != null ? question.getReadCount() : null;
     }
 
+    public boolean addTop(long id) throws Exception {
+
+        if (id < 0)
+            throw new IllegalArgumentException("id < 0 param is error");
+        Query query = new Query(Criteria.where(Constant._ID).is(id));
+        Update update = new Update();
+        update.set("top", (byte) 1 );
+        Question question = mongoTemplate.findAndModify(query, update, Question.class);
+        return question != null;
+    }
+
+    public boolean deleteTop(long id) throws Exception {
+
+        if (id < 0)
+            throw new IllegalArgumentException("id < 0 param is error");
+        Query query = new Query(Criteria.where(Constant._ID).is(id));
+        Update update = new Update();
+        update.set("top", (byte) 0);
+        Question question = mongoTemplate.findAndModify(query, update, Question.class);
+        return question != null;
+    }
+
     /*public Question addQuestionReadCount(Question question) {
 
         Update update = new Update();

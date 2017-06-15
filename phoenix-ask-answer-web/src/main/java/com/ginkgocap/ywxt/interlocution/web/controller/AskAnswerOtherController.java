@@ -57,7 +57,7 @@ public class AskAnswerOtherController extends BaseController{
         }
         if (topType == 0) {
             try {
-                //result = askService.addTop(id);
+                result = askService.addTop(id);
             } catch (Exception e) {
                 logger.error("invoke ask service failed! method :[ addTop ]");
                 return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
@@ -85,7 +85,7 @@ public class AskAnswerOtherController extends BaseController{
         }
         if (topType == 0) {
             try {
-                //result = askService.deleteTop(id);
+                result = askService.deleteTop(id);
             } catch (Exception e) {
                 logger.error("invoke ask service failed! method :[ deleteTop ]");
                 return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
@@ -181,6 +181,36 @@ public class AskAnswerOtherController extends BaseController{
         }
         return result;
     }
+
+    /**
+     * 删除 问答 (运营 后台)
+     * @param request
+     * @param deleteType 0：问题 1：答案
+     * @param id 根据type 传 问题 id  答案 id
+     * @return
+     */
+    @RequestMapping(value = "/{deleteType}/{id}", method = RequestMethod.DELETE)
+    public InterfaceResult removeAskAnswer(HttpServletRequest request, @PathVariable byte deleteType,
+                                           @PathVariable long id) {
+
+        InterfaceResult result = null;
+        User yinUser = this.getYINUser(request);
+        if (yinUser == null)
+            return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PERMISSION_EXCEPTION);
+        if (deleteType == 0) {
+            try {
+                result = askService.deleteQuestion(id);
+            } catch (Exception e) {
+                logger.error("invoke ask service failed! method : [ deleteQuestion ]");
+                return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
+            }
+        } else {
+             result = answerServiceLocal.removeAnswer(id);
+        }
+        return result;
+    }
+
+
 
     private InterfaceResult getId(HttpServletRequest request) {
 

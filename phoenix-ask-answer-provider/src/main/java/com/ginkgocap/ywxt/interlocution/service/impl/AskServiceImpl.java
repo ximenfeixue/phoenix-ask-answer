@@ -180,4 +180,30 @@ public class AskServiceImpl implements AskService {
         }
         return readCount;
     }
+
+    @Override
+    public InterfaceResult addTop(long id) {
+
+        boolean flag;
+        try {
+            flag = askMongoDao.addTop(id);
+        } catch (Exception e) {
+            logger.error("mongo top failed! method : [ addTop ]  id :" + id);
+            return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_DB_OPERATION_EXCEPTION);
+        }
+        return InterfaceResult.getSuccessInterfaceResultInstance(flag);
+    }
+
+    @Override
+    public InterfaceResult deleteTop(long id) {
+
+        boolean flag;
+        try {
+            flag = askMongoDao.deleteTop(id);
+        } catch (Exception e) {
+            logger.error("mongo delete top failed! method : [ deleteTop ]  id :" + id);
+            return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_DB_OPERATION_EXCEPTION);
+        }
+        return InterfaceResult.getSuccessInterfaceResultInstance(flag);
+    }
 }

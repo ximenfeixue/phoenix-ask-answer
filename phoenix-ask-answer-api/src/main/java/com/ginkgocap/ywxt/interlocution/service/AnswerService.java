@@ -37,4 +37,6 @@ public interface AnswerService {
     List<Long> getAnswererIdListSet() throws Exception;
 
     int countAnswerByQuestionId(long questionId) throws Exception;
+
+    InterfaceResult deleteAnswerById(long id);
 }

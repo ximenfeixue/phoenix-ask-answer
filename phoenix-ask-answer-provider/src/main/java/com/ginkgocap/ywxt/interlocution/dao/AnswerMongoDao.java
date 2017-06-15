@@ -93,4 +93,12 @@ public interface AnswerMongoDao {
      * @throws Exception
      */
     int countAnswerByQuestionId(long questionId) throws Exception;
+
+    /**
+     * 删除答案 通过 id 运营后台 使用 。不需要验证答案属于者
+     * @param id
+     * @return
+     * @throws Exception
+     */
+    boolean deleteAnswerById(long id) throws Exception;
 }

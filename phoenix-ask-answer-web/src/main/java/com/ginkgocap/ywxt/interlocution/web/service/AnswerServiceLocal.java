@@ -45,7 +45,11 @@ public class AnswerServiceLocal extends BaseController{
             return result;
         }
         // 将答案 置顶
-        result = answerService.addTop(answer);
+        try {
+            result = answerService.addTop(answer);
+        } catch (Exception e) {
+            logger.error("invoke answer service failed！ please check service");
+        }
         if ("0".equals(result.getNotification().getNotifCode())) {
             long questionId = answer.getQuestionId();
             Question question = null;
@@ -125,5 +129,85 @@ public class AnswerServiceLocal extends BaseController{
             }
         }
         return result;
+    }
+
+    public InterfaceResult removeAnswer(long id) {
+
+        InterfaceResult result = null;
+        Answer answer = null;
+        Question question = null;
+        try {
+            answer = answerService.getAnswerById(id);
+        } catch (Exception e) {
+            logger.error("invoke answer service failed! method :[ getAnswerById ]");
+            return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
+        }
+        if (answer == null) {
+            result = InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_EXCEPTION);
+            result.getNotification().setNotifInfo("当前答案不存在或已删除");
+            return result;
+        }
+        long questionId = answer.getQuestionId();
+        try {
+            question = askService.getQuestionById(questionId);
+        } catch (Exception e) {
+            logger.error("invoke ask service failed! method : [ getQuestionById ]");
+            return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
+        }
+        if (question == null) {
+            result = InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_EXCEPTION);
+            result.getNotification().setNotifInfo("当前问题不存在或已删除");
+            return result;
+        }
+        // 删除答案
+        try {
+            result = answerService.deleteAnswerById(id);
+        } catch (Exception e) {
+            logger.error("invoke answer service failed! method : [ deleteAnswer ]");
+            return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
+        }
+        // 删除 答案 成功 后 所做操作
+        afterRemoveAnswer(result, question, id);
+        return result;
+    }
+
+    /**
+     * 删除 答案后 所做操作
+     * @param result
+     * @param question
+     * @param id 删除的 答案 id
+     */
+    public void afterRemoveAnswer(InterfaceResult result, Question question, long id) {
+
+        if ("0".equals(result.getNotification().getNotifCode())) {
+            long questionId = question.getId();
+            PartAnswer topAnswer = question.getTopAnswer();
+            if (topAnswer != null && topAnswer.getAnswerId() == id) {
+                Answer maxPraiseCountAnswer = null;
+                try {
+                    maxPraiseCountAnswer = answerService.getAnswerMaxPraiseCountByQId(questionId);
+                } catch (Exception e) {
+                    logger.error("invoke answer service failed! method : [ getAnswerMaxPraiseCountByQId ] questionId :" + questionId);
+                }
+                PartAnswer partAnswer = convertAnswer(maxPraiseCountAnswer);
+                question.setTopAnswer(partAnswer);
+                // 修改 问题表 中 status and answerCount 字段
+                int answerCount = (int)minusAnswerCountByRedis(questionId);
+                byte status = 0;
+                if (answerCount > 0) {
+                    status = 1;
+                } else {
+                    answerCount = 0;
+                }
+                question.setStatus(status);
+                question.setAnswerCount(answerCount);
+                try {
+                    askService.updateQuestion(question);
+
+                } catch (Exception e) {
+                    logger.error("invoke ask service failed! method : [ updateQuestion ]");
+                }
+            }
+        }
     }
 }

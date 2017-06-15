@@ -107,19 +107,17 @@ public interface AskService {
      */
     QuestionCollect getCollectByUIdQuestionId(long userId, long questionId) throws Exception;
     /**
-     * 删除问题 通过 id
+     * 删除问题 通过 id 运营后台 不需要验证问题属于者
      * @param id
      * @return
      */
     InterfaceResult deleteQuestion(long id);
-
     /**
      * 删除 问题 只能 删除自己的
      * @param id
      * @return
      */
     InterfaceResult deleteQuestion(long id, long userId);
-
     /**
      * 查看 阅读数
      * @param id
@@ -127,4 +125,18 @@ public interface AskService {
      * @throws Exception
      */
     Long getReadCount(long id) throws Exception;
+    /**
+     * 置顶 问题
+     * @param id
+     * @return
+     * @throws Exception
+     */
+    InterfaceResult addTop(long id);
+    /**
+     * 取消 置顶 问题
+     * @param id
+     * @return
+     * @throws Exception
+     */
+    InterfaceResult deleteTop(long id);
 }

@@ -143,4 +143,16 @@ public class AnswerServiceImpl implements AnswerService {
         return answerMongoDao.countAnswerByQuestionId(questionId);
     }
 
+    @Override
+    public InterfaceResult deleteAnswerById(long id){
+
+        boolean flag;
+        try {
+            flag = answerMongoDao.deleteAnswerById(id);
+        } catch (Exception e) {
+            return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_DB_OPERATION_EXCEPTION);
+        }
+        return InterfaceResult.getSuccessInterfaceResultInstance(flag);
+    }
+
 }

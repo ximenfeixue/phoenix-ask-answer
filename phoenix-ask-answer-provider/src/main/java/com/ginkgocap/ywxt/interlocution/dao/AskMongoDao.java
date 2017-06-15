@@ -42,4 +42,7 @@ public interface AskMongoDao {
 
     Long getReadCount(long id) throws Exception;
 
+    boolean addTop(long id) throws Exception;
+
+    boolean deleteTop(long id) throws Exception;
 }
