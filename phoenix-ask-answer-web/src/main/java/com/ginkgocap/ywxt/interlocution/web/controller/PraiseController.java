@@ -156,7 +156,7 @@ public class PraiseController extends BaseController{
                 logger.error("invoke askService failed! update question");
             }
             // 发送 通知
-            if (user.getId() != praise.getAnswerId()) {
+            if (user.getId() != praise.getAnswererId()) {
                 MessageNotify message = createMessageNotify(praise, dbUser, question.getId());
                 dataSyncTask.saveDataNeedSync(new DataSync(0l, message));
             } else {
@@ -201,6 +201,35 @@ public class PraiseController extends BaseController{
                 answer.setPraiseCount(this.getPraiseUIdSet(answerId).size());
                 // 修改 答案表
                 updateAnswerResult(answer);
+                //修改 问题表
+                long questionId = answer.getQuestionId();
+                Question question = null;
+                try {
+                    question = askService.getQuestionById(questionId);
+                } catch (Exception e) {
+                    logger.error("invoke ask service failed! method : [ getQuestionById ]");
+                }
+                PartAnswer topAnswer = question.getTopAnswer();
+                PartAnswer partAnswer = null;
+                if (topAnswer.getTop() == 1) {
+                    partAnswer = convertAnswer(answer);
+                } else if (topAnswer != null && topAnswer.getAnswerId() == answerId) {
+                    Answer maxPraiseCountAnswer = null;
+                    try {
+                        maxPraiseCountAnswer = answerService.getAnswerMaxPraiseCountByQId(questionId);
+                    } catch (Exception e) {
+                        logger.error("invoke answer service failed! method : [ getAnswerMaxPraiseCountByQId ] questionId :" + questionId);
+                    }
+                    if (maxPraiseCountAnswer != null && maxPraiseCountAnswer.getPraiseCount() > 0) {
+                        partAnswer = convertAnswer(maxPraiseCountAnswer);
+                    }
+                }
+                question.setTopAnswer(partAnswer);
+                try {
+                    askService.updateQuestion(question);
+                } catch (Exception e) {
+                    logger.error("invoke ask service failed! method : [ updateQuestion ]");
+                }
             }
         } catch (Exception e) {
             logger.error("invoke praise service failed! please check service" + e.getMessage());

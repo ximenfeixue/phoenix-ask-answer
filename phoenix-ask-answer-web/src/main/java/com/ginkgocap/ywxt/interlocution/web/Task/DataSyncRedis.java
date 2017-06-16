@@ -32,7 +32,7 @@ public class DataSyncRedis implements InitializingBean, Runnable{
     public void afterPropertiesSet() throws Exception {
 
         logger.info("data sync start ...");
-        new Thread(this, "fei sync data .... ^-^").start();
+        //new Thread(this, "fei sync data .... ^-^").start();
         logger.info("data sync end ...");
     }
 

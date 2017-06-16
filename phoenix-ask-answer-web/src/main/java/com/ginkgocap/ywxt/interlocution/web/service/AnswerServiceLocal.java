@@ -190,7 +190,10 @@ public class AnswerServiceLocal extends BaseController{
                 } catch (Exception e) {
                     logger.error("invoke answer service failed! method : [ getAnswerMaxPraiseCountByQId ] questionId :" + questionId);
                 }
-                PartAnswer partAnswer = convertAnswer(maxPraiseCountAnswer);
+                PartAnswer partAnswer = null;
+                if (maxPraiseCountAnswer != null && maxPraiseCountAnswer.getPraiseCount() > 0) {
+                    partAnswer = convertAnswer(maxPraiseCountAnswer);
+                }
                 question.setTopAnswer(partAnswer);
             }
             // 修改 问题表 中 status and answerCount 字段
