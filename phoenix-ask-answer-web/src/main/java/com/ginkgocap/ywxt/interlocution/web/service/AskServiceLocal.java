@@ -60,8 +60,8 @@ public class AskServiceLocal {
     public List<QuestionHome> getAnswerByUId(long userId, int start, int size) throws Exception{
 
         List<QuestionHome> questionHomeList = new ArrayList<QuestionHome>();
-        QuestionHome questionHome = new QuestionHome();
-        QuestionHome base = null;
+        /*QuestionHome questionHome = new QuestionHome();
+        QuestionHome base = null;*/
         List<Answer> answerList = null;
         try {
             answerList = answerService.getAnswerByUId(userId, start, size);
@@ -80,7 +80,8 @@ public class AskServiceLocal {
                     logger.error("invoke ask service failed! method :[ getQuestionById ]");
                 }
                 if (question != null) {
-                    base = questionHome;
+                    QuestionHome base = new QuestionHome();
+                    //base = questionHome;
                     base.setAnswer(answer);
                     base.setQuestion(question);
                     questionHomeList.add(base);
