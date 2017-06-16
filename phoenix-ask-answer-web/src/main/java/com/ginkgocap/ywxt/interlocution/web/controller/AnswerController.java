@@ -226,48 +226,6 @@ public class AnswerController extends BaseController{
         // 删除 答案成功 后，检查 该答案 是否是 发现页 中 最优答案
         // 删除 答案 成功 后 所做操作
         answerServiceLocal.afterRemoveAnswer(result, question, id);
-        /*if ("0".equals(result.getNotification().getNotifCode())) {
-            PartAnswer topAnswer = question.getTopAnswer();
-            if (topAnswer != null && topAnswer.getAnswerId() == id) {
-                //topAnswer = null;
-                Answer answerMaxPraiseCount;
-                try {
-                    answerMaxPraiseCount = answerService.getAnswerMaxPraiseCountByQId(questionId);
-                } catch (Exception e) {
-                    logger.error("invoke answer service failed! method : [ getAnswerMaxPraiseCountByQId ]" + e.getMessage());
-                    return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
-                }
-                if (answerMaxPraiseCount != null) {
-                    topAnswer = convertAnswer(answerMaxPraiseCount);
-                    question.setTopAnswer(topAnswer);
-                }
-                // 修改 问题表 中 topAnswer
-                try {
-                    InterfaceResult updateResult = askService.updateQuestion(question);
-                    if (!"0".equals(updateResult.getNotification().getNotifCode())) {
-                        logger.error("update question failed! please check askService, check provider log");
-                    }
-                } catch (Exception e) {
-                    logger.error("invoke ask service failed! method : [ updateQuestion ]");
-                    return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
-                }
-            }
-            // 修改 问题表 中 status and answerCount 字段
-            int answerCount = (int)minusAnswerCountByRedis(questionId);
-            byte status = 0;
-            if (answerCount > 0) {
-                status = 1;
-            }
-            try {
-                boolean flag = askService.updateStatusAndAnswerCount(questionId, status, answerCount);
-                if (!flag) {
-                    logger.error("update status = 0 failed! method :[ updateStatusAndAnswerCount ]");
-                }
-            } catch (Exception e) {
-                logger.error("invoke askService failed! method :[ updateStatusAndAnswerCount ]");
-                return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_DB_OPERATION_EXCEPTION);
-            }
-        }*/
         return result;
     }
 

@@ -206,4 +206,22 @@ public class AskServiceImpl implements AskService {
         }
         return InterfaceResult.getSuccessInterfaceResultInstance(flag);
     }
+
+    @Override
+    public List<Question> getAllQuestion(int start, int size) throws Exception {
+
+        return askMongoDao.getAllQuestion(start, size);
+    }
+
+    @Override
+    public InterfaceResult updateQuestionAnswerCount(long id, int count) {
+
+        boolean flag;
+        try {
+            flag = askMongoDao.updateQuestionAnswerCount(id, count);
+        } catch (Exception e) {
+            return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_DB_OPERATION_EXCEPTION);
+        }
+        return InterfaceResult.getSuccessInterfaceResultInstance(flag);
+    }
 }

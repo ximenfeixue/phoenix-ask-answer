@@ -13,6 +13,7 @@ import com.ginkgocap.ywxt.user.service.UserService;
 import com.gintong.frame.util.dto.CommonResultCode;
 import com.gintong.frame.util.dto.InterfaceResult;
 import com.gintong.ywxt.im.model.MessageNotify;
+import com.gintong.ywxt.im.model.MessageNotifyType;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -156,7 +157,7 @@ public class PraiseController extends BaseController{
             }
             // 发送 通知
             if (user.getId() != praise.getAnswerId()) {
-                MessageNotify message = createMessageNotify(praise, dbUser);
+                MessageNotify message = createMessageNotify(praise, dbUser, question.getId());
                 dataSyncTask.saveDataNeedSync(new DataSync(0l, message));
             } else {
                 logger.info("praise self answer! so skip send message");
@@ -176,7 +177,6 @@ public class PraiseController extends BaseController{
 
         InterfaceResult result = null;
         User user = this.getUser(request);
-        List<PartPraise> remList = new ArrayList<PartPraise>(3);
         if (user == null) {
             return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PERMISSION_EXCEPTION);
         }
@@ -188,16 +188,6 @@ public class PraiseController extends BaseController{
                 this.removePraiseUId(answerId, userId);
                 Answer answer = answerService.getAnswerById(answerId);
                 List<PartPraise> partPraiseList = answer.getPartPraiseList();
-                /*if (CollectionUtils.isNotEmpty(partPraiseList)) {
-                    for (PartPraise partPraise : partPraiseList) {
-                        if (partPraise == null)
-                            continue;
-                        if (partPraise.getAdmirerId() == userId) {
-                            remList.add(partPraise);
-                        }
-                    }
-                }*/
-                //partPraiseList.removeAll(remList);
                 partPraiseList = new ArrayList<PartPraise>(3);
                 List<Praise> praiseList = praiseService.getPartPraiseUser(answerId, 0, 3);
                 if (CollectionUtils.isNotEmpty(praiseList)) {
@@ -244,7 +234,7 @@ public class PraiseController extends BaseController{
         return result;
     }
 
-    private MessageNotify createMessageNotify(Praise praise, User user) {
+    private MessageNotify createMessageNotify(Praise praise, User user, long questionId) {
 
         if (praise == null) {
             logger.error("praise is null! so skip createMessage!");
@@ -258,7 +248,7 @@ public class PraiseController extends BaseController{
         //message.setType(MessageNotifyType.E);
         message.setType(17);
         message.setToId(praise.getAnswererId());
-        message.setContent(convertToJson(praise.getAnswerId()));
+        message.setContent(convertToJson(praise.getAnswerId(), questionId));
         final short virtual = user.isVirtual() ? (short) 1 : (short) 0;
         message.setVirtual(virtual);
 
@@ -266,18 +256,18 @@ public class PraiseController extends BaseController{
 
     }
 
-    private String convertToJson(long answerId) {
+    private String convertToJson(long answerId, long questionId) {
 
-        Map<String, Object> map = mapContent(answerId);
+        Map<String, Object> map = mapContent(answerId, questionId);
         return AskAnswerJsonUtils.writeObjectToJson(map);
     }
 
-    private Map<String, Object> mapContent(long questionId) {
+    private Map<String, Object> mapContent(long answerId, long questionId) {
 
         Map<String, Object> map = new HashMap<String, Object>(2);
-        map.put("id", questionId);
-        //map.put("type", MessageNotifyType.EKnowledge.value());
-        map.put("type", 17);
+        map.put("id", answerId);
+        map.put("questionId", questionId);
+        map.put("type", MessageNotifyType.EAskAnswerApprove.value());
         return map;
     }
 

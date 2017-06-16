@@ -45,4 +45,8 @@ public interface AskMongoDao {
     boolean addTop(long id) throws Exception;
 
     boolean deleteTop(long id) throws Exception;
+
+    List<Question> getAllQuestion(int start, int size) throws Exception;
+
+    boolean updateQuestionAnswerCount(long id, int count) throws Exception;
 }

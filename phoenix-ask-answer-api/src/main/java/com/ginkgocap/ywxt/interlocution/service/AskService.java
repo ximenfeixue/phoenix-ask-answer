@@ -139,4 +139,19 @@ public interface AskService {
      * @throws Exception
      */
     InterfaceResult deleteTop(long id);
+    /**
+     * 获取 所有 问题
+     * @param start
+     * @param size
+     * @return
+     * @throws Exception
+     */
+    List<Question> getAllQuestion(int start, int size) throws Exception;
+    /**
+     * 修改 问题 回答数
+     * @param id
+     * @param count
+     * @return
+     */
+    InterfaceResult updateQuestionAnswerCount(long id, int count);
 }

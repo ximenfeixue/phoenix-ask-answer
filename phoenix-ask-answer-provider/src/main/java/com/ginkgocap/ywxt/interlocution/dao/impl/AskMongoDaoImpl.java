@@ -234,6 +234,31 @@ public class AskMongoDaoImpl implements AskMongoDao {
         return question != null;
     }
 
+    public List<Question> getAllQuestion(int start, int size) throws Exception {
+
+        if (start < 0 || size < 0)
+            throw new IllegalArgumentException("start or size param is error");
+        int index = 0;
+        index = start * size;
+        Query query = new Query();
+        query.skip(index);
+        query.limit(size);
+        return mongoTemplate.find(query, Question.class, Constant.Collection.QUESTION);
+    }
+
+    public boolean updateQuestionAnswerCount(long id, int count) throws Exception {
+
+        if (id < 0 || count < 0)
+            throw new IllegalArgumentException("id or count param is error");
+        Query query = new Query(Criteria.where(Constant._ID).is(id));
+        Update update = new Update();
+        update.set("answerCount", count);
+        Question question = mongoTemplate.findAndModify(query, update, Question.class);
+        return question != null;
+    }
+
+
+
     /*public Question addQuestionReadCount(Question question) {
 
         Update update = new Update();
