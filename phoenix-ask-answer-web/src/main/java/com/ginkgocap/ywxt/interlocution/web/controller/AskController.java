@@ -143,7 +143,7 @@ public class AskController extends BaseController{
             return jacksonValue;
         }
         if (base == null || base.getQuestion() == null) {
-            result = InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_DB_OPERATION_EXCEPTION);
+            result = InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_EXCEPTION);
             result.getNotification().setNotifInfo("当前问题不存在或已删除！");
             jacksonValue = new MappingJacksonValue(result);
             return jacksonValue;
