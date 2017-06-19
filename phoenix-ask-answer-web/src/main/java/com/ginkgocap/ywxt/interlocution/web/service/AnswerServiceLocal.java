@@ -44,6 +44,19 @@ public class AnswerServiceLocal extends BaseController{
             result.getNotification().setNotifInfo("当前答案不存在或已删除");
             return result;
         }
+        long questionId = answer.getQuestionId();
+        int count = 0;
+        try {
+            count = answerService.countTopAnswerByQuestionId(questionId);
+
+        } catch (Exception e) {
+            logger.error("invoke answer service failed! method : [ countTopAnswerByQuestionId ] questionId :" + questionId);
+        }
+        if (count > 0) {
+            result = InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_EXCEPTION);
+            result.getNotification().setNotifInfo("已有相同问题的答案被置顶，请取消置顶该答案后重新操作！");
+            return result;
+        }
         // 将答案 置顶
         try {
             result = answerService.addTop(answer);
@@ -51,7 +64,6 @@ public class AnswerServiceLocal extends BaseController{
             logger.error("invoke answer service failed！ please check service");
         }
         if ("0".equals(result.getNotification().getNotifCode())) {
-            long questionId = answer.getQuestionId();
             Question question = null;
             try {
                 question = askService.getQuestionById(questionId);

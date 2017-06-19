@@ -17,6 +17,7 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -257,11 +258,70 @@ public class AskMongoDaoImpl implements AskMongoDao {
         return question != null;
     }
 
+    public boolean updateDisabled(byte disabled, long questionId) throws Exception {
 
-
-    /*public Question addQuestionReadCount(Question question) {
-
+        if (disabled < 0 || questionId < 0)
+            throw new IllegalArgumentException("disabled or question param is error");
+        Query query = new Query(Criteria.where(Constant._ID).is(questionId));
         Update update = new Update();
-        update.set("")
-    }*/
+        update.set("disabled", disabled);
+        Question question = mongoTemplate.findAndModify(query, update, Question.class);
+        return question != null;
+    }
+
+    public List<Question> searchQuestionByUser(List<Long> userIdList, long startTime, long endTime, byte status, byte timeSortType, byte readCountSortType, byte answerCountSortType, int start, int size) {
+
+        Query query = new Query(Criteria.where(Constant.USER_ID).in(userIdList));
+        return search(query, startTime, endTime, status, timeSortType, readCountSortType, answerCountSortType, start, size);
+    }
+
+    public List<Question> searchQuestionByTitle(String keyword, long startTime, long endTime, byte status, byte timeSortType, byte readCountSortType, byte answerCountSortType, int start, int size) {
+
+        Query query = new Query(Criteria.where("title").regex(".*?" + keyword + ".*"));
+        return search(query, startTime, endTime, status, timeSortType, readCountSortType, answerCountSortType, start, size);
+    }
+
+    private List<Question> search(Query query, long startTime, long endTime, byte status, byte timeSortType, byte readCountSortType, byte answerCountSortType, int start, int size) {
+
+        if (startTime > 0) {
+            query.addCriteria(Criteria.where(Constant.CREATE_TIME).gte(startTime));
+        }
+        if (endTime > 0) {
+            query.addCriteria(Criteria.where(Constant.CREATE_TIME).lte(endTime));
+        }
+        if (status < 2 && status > -1) {
+            query.addCriteria(Criteria.where("disabled").is(status));
+        }
+        long count = mongoTemplate.count(query, Question.class, Constant.Collection.QUESTION);
+        int index = start * size;
+        if (index > count) {
+            logger.info("because of index > count, so return null, skip query.");
+            return null;
+        }
+        if (index + size > count) {
+            size = (int)count - index;
+        }
+        query.with(new Sort(Sort.Direction.DESC, Constant.TOP));
+        // 发布时间 排序
+        if (timeSortType == 0) {
+            query.with(new Sort(Sort.Direction.DESC, Constant.CREATE_TIME));
+        } else if (timeSortType == 1) {
+            query.with(new Sort(Sort.Direction.ASC, Constant.CREATE_TIME));
+        } else {}
+        // 阅读数 排序
+        if (readCountSortType == 0) {
+            query.with(new Sort(Sort.Direction.DESC, "readCount"));
+        } else if (readCountSortType == 1) {
+            query.with(new Sort(Sort.Direction.ASC, "readCount"));
+        } else {}
+        // 回答数 排序
+        if (answerCountSortType == 0) {
+            query.with(new Sort(Sort.Direction.DESC, "answerCount"));
+        } else if (answerCountSortType == 1) {
+            query.with(new Sort(Sort.Direction.ASC, "answerCount"));
+        } else {}
+        query.skip(index);
+        query.limit(size);
+        return mongoTemplate.find(query, Question.class, Constant.Collection.QUESTION);
+    }
 }

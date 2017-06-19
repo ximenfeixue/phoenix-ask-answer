@@ -81,6 +81,10 @@ public class Question implements Serializable{
      */
     @Transient
     private byte isCollect;
+    /**
+     * 问题 禁用状态 0：未禁用 1：禁用
+     */
+    private byte disabled;
 
     public long getId() {
         return id;
@@ -236,5 +240,13 @@ public class Question implements Serializable{
                 "answerCount=" + answerCount +
                 ", readCount=" + readCount +
                 '}';
+    }
+
+    public byte getDisabled() {
+        return disabled;
+    }
+
+    public void setDisabled(byte disabled) {
+        this.disabled = disabled;
     }
 }

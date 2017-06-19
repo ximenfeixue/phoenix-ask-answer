@@ -39,4 +39,6 @@ public interface AnswerService {
     int countAnswerByQuestionId(long questionId) throws Exception;
 
     InterfaceResult deleteAnswerById(long id);
+
+    int countTopAnswerByQuestionId(long questionId) throws Exception;
 }

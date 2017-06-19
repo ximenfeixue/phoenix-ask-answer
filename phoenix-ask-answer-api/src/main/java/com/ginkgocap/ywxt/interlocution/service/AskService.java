@@ -154,4 +154,35 @@ public interface AskService {
      * @return
      */
     InterfaceResult updateQuestionAnswerCount(long id, int count);
+    /**
+     * 修改 问题 禁用 状态
+     * @param disabled
+     * @param questionId
+     * @return
+     */
+    InterfaceResult updateDisabled(byte disabled, long questionId);
+    /**
+     * 通过 id list 查询 问题
+     * @param userIdList 创建问题者 list
+     * @param startTime
+     * @param endTime
+     * @param status 问题 状态
+     * @param sortType 排序类型
+     * @param start
+     * @param size
+     * @return
+     */
+    List<Question> searchQuestionByUser(List<Long> userIdList, long startTime, long endTime, byte status, byte timeSortType, byte readCountSortType, byte answerCountSortType, int start, int size);
+    /**
+     * 通过问题标题 模糊查询 问题
+     * @param keyword 标题关键字
+     * @param startTime
+     * @param endTime
+     * @param status 问题 状态
+     * @param sortType 排序类型
+     * @param start
+     * @param size
+     * @return
+     */
+    List<Question> searchQuestionByTitle(String keyword, long startTime, long endTime, byte status, byte timeSortType, byte readCountSortType, byte answerCountSortType, int start, int size);
 }

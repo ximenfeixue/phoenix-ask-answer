@@ -155,4 +155,10 @@ public class AnswerServiceImpl implements AnswerService {
         return InterfaceResult.getSuccessInterfaceResultInstance(flag);
     }
 
+    @Override
+    public int countTopAnswerByQuestionId(long questionId) throws Exception {
+
+        return answerMongoDao.countTopAnswerByQuestionId(questionId);
+    }
+
 }

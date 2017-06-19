@@ -49,4 +49,10 @@ public interface AskMongoDao {
     List<Question> getAllQuestion(int start, int size) throws Exception;
 
     boolean updateQuestionAnswerCount(long id, int count) throws Exception;
+
+    boolean updateDisabled(byte disabled, long questionId) throws Exception;
+
+    List<Question> searchQuestionByUser(List<Long> userIdList, long startTime, long endTime, byte status, byte timeSortType, byte readCountSortType, byte answerCountSortType, int start, int size);
+
+    List<Question> searchQuestionByTitle(String keyword, long startTime, long endTime, byte status, byte timeSortType, byte readCountSortType, byte answerCountSortType, int start, int size);
 }

@@ -224,4 +224,28 @@ public class AskServiceImpl implements AskService {
         }
         return InterfaceResult.getSuccessInterfaceResultInstance(flag);
     }
+
+    @Override
+    public InterfaceResult updateDisabled(byte disabled, long questionId) {
+
+        boolean flag;
+        try {
+            flag = askMongoDao.updateDisabled(disabled, questionId);
+        } catch (Exception e) {
+            return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_DB_OPERATION_EXCEPTION);
+        }
+        return InterfaceResult.getSuccessInterfaceResultInstance(flag);
+    }
+
+    @Override
+    public List<Question> searchQuestionByUser(List<Long> userIdList, long startTime, long endTime, byte status, byte timeSortType, byte readCountSortType, byte answerCountSortType, int start, int size) {
+
+        return askMongoDao.searchQuestionByUser(userIdList, startTime, endTime, status, timeSortType, readCountSortType, answerCountSortType, start, size);
+    }
+
+    @Override
+    public List<Question> searchQuestionByTitle(String keyword, long startTime, long endTime, byte status, byte timeSortType, byte readCountSortType, byte answerCountSortType, int start, int size) {
+
+        return askMongoDao.searchQuestionByTitle(keyword, startTime, endTime, status, timeSortType, readCountSortType, answerCountSortType, start, size);
+    }
 }

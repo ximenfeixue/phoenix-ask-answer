@@ -101,4 +101,12 @@ public interface AnswerMongoDao {
      * @throws Exception
      */
     boolean deleteAnswerById(long id) throws Exception;
+
+    /**
+     * 查询 置顶 答案数 通过 问题 id
+     * @param questionId
+     * @return
+     * @throws Exception
+     */
+    int countTopAnswerByQuestionId(long questionId) throws Exception;
 }
