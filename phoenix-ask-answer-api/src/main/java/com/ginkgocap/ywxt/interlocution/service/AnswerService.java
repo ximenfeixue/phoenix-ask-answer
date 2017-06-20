@@ -41,4 +41,10 @@ public interface AnswerService {
     InterfaceResult deleteAnswerById(long id);
 
     int countTopAnswerByQuestionId(long questionId) throws Exception;
+
+    List<Answer> searchAnswerByUser(List<Long> list, long startTime, long endTime, byte timeSortType, byte praiseCountSortType, int start, int size) throws Exception;
+
+    List<Answer> searchAnswerByQuestionIdList(List<Long> list, long startTime, long endTime, byte timeSortType, byte praiseCountSortType, int start, int size) throws Exception;
+
+    List<Answer> searchAnswerByContent(String keyword, long startTime, long endTime, byte timeSortType, byte praiseCountSortType, int start, int size) throws Exception;
 }

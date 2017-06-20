@@ -109,4 +109,46 @@ public interface AnswerMongoDao {
      * @throws Exception
      */
     int countTopAnswerByQuestionId(long questionId) throws Exception;
+
+    /**
+     * 搜索 答案 通过 用户 id list 后台运营
+     * @param list
+     * @param startTime
+     * @param endTime
+     * @param timeSortType
+     * @param praiseCountSortType
+     * @param start
+     * @param size
+     * @return
+     * @throws Exception
+     */
+    List<Answer> searchAnswerByUser(List<Long> list, long startTime, long endTime, byte timeSortType, byte praiseCountSortType, int start, int size) throws Exception;
+
+    /**
+     * 搜索答案 通过 question id list
+     * @param questionIdList
+     * @param startTime
+     * @param endTime
+     * @param timeSortType
+     * @param praiseCountSortType
+     * @param start
+     * @param size
+     * @return
+     * @throws Exception
+     */
+    List<Answer> searchAnswerByQuestionIdList(List<Long> questionIdList, long startTime, long endTime, byte timeSortType, byte praiseCountSortType, int start, int size) throws Exception;
+
+    /**
+     * 搜索答案 通过 答案 内容 模糊查询
+     * @param keyword
+     * @param startTime
+     * @param endTime
+     * @param timeSortType
+     * @param praiseCountSortType
+     * @param start
+     * @param size
+     * @return
+     * @throws Exception
+     */
+    List<Answer> searchAnswerByContent(String keyword, long startTime, long endTime, byte timeSortType, byte praiseCountSortType, int start, int size) throws Exception;
 }

@@ -197,4 +197,60 @@ public class AnswerMongoDaoImpl implements AnswerMongoDao {
         long count = mongoTemplate.count(query, Answer.class, Constant.Collection.ANSWER);
         return (int) count;
     }
+
+    public List<Answer> searchAnswerByUser(List<Long> list, long startTime, long endTime, byte timeSortType, byte praiseCountSortType, int start, int size) throws Exception {
+
+        Query query = new Query(Criteria.where(Constant.ANSWERER_ID).in(list));
+
+        return search(query, startTime, endTime, timeSortType, praiseCountSortType, start, size);
+    }
+
+    public List<Answer> searchAnswerByQuestionIdList(List<Long> questionIdList, long startTime, long endTime, byte timeSortType, byte praiseCountSortType, int start, int size) throws Exception {
+
+        Query query = new Query(Criteria.where("questionId").in(questionIdList));
+
+        return search(query, startTime, endTime, timeSortType, praiseCountSortType, start, size);
+    }
+
+    public List<Answer> searchAnswerByContent(String keyword, long startTime, long endTime, byte timeSortType, byte praiseCountSortType, int start, int size) throws Exception {
+
+        Query query = new Query(Criteria.where("content").regex(".*?" + keyword + ".*"));
+
+        return search(query, startTime, endTime, timeSortType, praiseCountSortType, start, size);
+    }
+
+    private List<Answer> search(Query query, long startTime, long endTime, byte timeSortType, byte praiseCountSortType, int start, int size) {
+
+        if (startTime > 0) {
+            query.addCriteria(Criteria.where(Constant.CREATE_TIME).gte(startTime));
+        }
+        if (endTime > 0) {
+            query.addCriteria(Criteria.where(Constant.CREATE_TIME).lte(endTime));
+        }
+        long count = mongoTemplate.count(query, Answer.class, Constant.Collection.ANSWER);
+        int index = start * size;
+        if (index > count) {
+            logger.info("because of index > count , so return null!");
+            return null;
+        }
+        if (index + size > count) {
+            size = (int) count - index;
+        }
+        query.with(new Sort(Sort.Direction.DESC, Constant.TOP));
+        // 时间 排序
+        if (timeSortType == 0) {
+            query.with(new Sort(Sort.Direction.DESC, Constant.CREATE_TIME));
+        } else if (timeSortType == 1) {
+            query.with(new Sort(Sort.Direction.ASC, Constant.CREATE_TIME));
+        } else {}
+        // 点赞数 排序
+        if (praiseCountSortType == 0) {
+            query.with(new Sort(Sort.Direction.DESC, Constant.PRAISE_COUNT));
+        } else if (praiseCountSortType == 1) {
+            query.with(new Sort(Sort.Direction.ASC, Constant.PRAISE_COUNT));
+        } else {}
+        query.skip(index);
+        query.limit(size);
+        return mongoTemplate.find(query, Answer.class, Constant.Collection.ANSWER);
+    }
 }

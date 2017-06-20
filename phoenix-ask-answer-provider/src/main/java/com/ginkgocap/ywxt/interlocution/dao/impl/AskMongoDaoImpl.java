@@ -272,12 +272,14 @@ public class AskMongoDaoImpl implements AskMongoDao {
     public List<Question> searchQuestionByUser(List<Long> userIdList, long startTime, long endTime, byte status, byte timeSortType, byte readCountSortType, byte answerCountSortType, int start, int size) {
 
         Query query = new Query(Criteria.where(Constant.USER_ID).in(userIdList));
+
         return search(query, startTime, endTime, status, timeSortType, readCountSortType, answerCountSortType, start, size);
     }
 
     public List<Question> searchQuestionByTitle(String keyword, long startTime, long endTime, byte status, byte timeSortType, byte readCountSortType, byte answerCountSortType, int start, int size) {
 
         Query query = new Query(Criteria.where("title").regex(".*?" + keyword + ".*"));
+
         return search(query, startTime, endTime, status, timeSortType, readCountSortType, answerCountSortType, start, size);
     }
 
@@ -320,8 +322,10 @@ public class AskMongoDaoImpl implements AskMongoDao {
         } else if (answerCountSortType == 1) {
             query.with(new Sort(Sort.Direction.ASC, "answerCount"));
         } else {}
-        query.skip(index);
-        query.limit(size);
+        if (start >= 0) {
+            query.skip(index);
+            query.limit(size);
+        }
         return mongoTemplate.find(query, Question.class, Constant.Collection.QUESTION);
     }
 }

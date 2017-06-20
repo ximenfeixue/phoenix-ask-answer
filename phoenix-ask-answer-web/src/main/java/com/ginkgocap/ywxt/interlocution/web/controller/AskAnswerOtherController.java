@@ -342,7 +342,6 @@ public class AskAnswerOtherController extends BaseController{
                                           @PathVariable byte answerCountSortType, @PathVariable int start,
                                           @PathVariable int size) {
 
-        InterfaceResult result = null;
         List<Long> list = null;
         List<Question> questionList = null;
         User yinUser = this.getYINUser(request);
@@ -385,25 +384,49 @@ public class AskAnswerOtherController extends BaseController{
      * @param size 每页 显示条数
      * @return
      */
-    @RequestMapping(value = "/search/answer/{keyType}/{keyword}/{startTime}/{endTime}/{timeSortType}/{praiseCountType}/{start}/{size}", method = RequestMethod.GET)
+    @RequestMapping(value = "/search/answer/{keyType}/{keyword}/{startTime}/{endTime}/{timeSortType}/{praiseCountSortType}/{start}/{size}", method = RequestMethod.GET)
     public InterfaceResult searchAnswer(HttpServletRequest request, @PathVariable byte keyType,
                                         @PathVariable String keyword, @PathVariable long startTime,
                                         @PathVariable long endTime, @PathVariable byte timeSortType,
-                                        @PathVariable byte praiseCountType, @PathVariable int start,
+                                        @PathVariable byte praiseCountSortType, @PathVariable int start,
                                         @PathVariable int size) {
 
         InterfaceResult result = null;
+        List<Answer> answerList = null;
+        List<Long> list = null;
         User yinUser = this.getYINUser(request);
         if (yinUser == null)
             return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PERMISSION_EXCEPTION);
+        if (endTime > startTime) {
+            return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_EXCEPTION);
+        }
         if (keyType == 0) {
-            
+            try {
+                answerList = answerServiceLocal.searchAnswerByQuestionTitle(keyword, startTime, endTime, timeSortType, praiseCountSortType, start, size);
+            } catch (Exception e) {
+                logger.error("invoke answer local service failed! method : [ searchAnswerByQuestionTitle ]");
+                return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
+            }
         } else if (keyType == 1) {
-
+            try {
+                answerList = answerService.searchAnswerByContent(keyword, startTime, endTime, timeSortType, praiseCountSortType, start, size);
+            } catch (Exception e) {
+                logger.error("invoke answer service failed! method : [ searchAnswerByContent ]");
+                return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
+            }
         } else if (keyType == 2) {
-
+            try {
+                list = returnListId(list, keyword);
+                if (CollectionUtils.isNotEmpty(list)) {
+                    answerList = answerService.searchAnswerByUser(list, startTime, endTime, timeSortType, praiseCountSortType, start, size);
+                }
+            } catch (Exception e) {
+                logger.error("invoke answer service failed! method : [ searchAnswerByUser ]");
+                return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
+            }
         } else {}
-        return result;
+
+        return InterfaceResult.getSuccessInterfaceResultInstance(answerList);
     }
 
     private InterfaceResult getId(HttpServletRequest request) {
@@ -425,6 +448,12 @@ public class AskAnswerOtherController extends BaseController{
         return result;
     }
 
+    /**
+     * 通过 name 关键字 查询 userId list
+     * @param list
+     * @param keyword
+     * @return
+     */
     private List<Long> returnListId(List<Long> list, String keyword) {
 
         Map<String, Object> map = null;

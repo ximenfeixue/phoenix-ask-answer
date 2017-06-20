@@ -8,11 +8,15 @@ import com.ginkgocap.ywxt.interlocution.service.AskService;
 import com.ginkgocap.ywxt.interlocution.web.controller.BaseController;
 import com.gintong.frame.util.dto.CommonResultCode;
 import com.gintong.frame.util.dto.InterfaceResult;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Wang fei on 2017/6/5.
@@ -227,5 +231,39 @@ public class AnswerServiceLocal extends BaseController{
             }
             logger.info("method [ afterRemoveAnswer ] end ......");
         }
+    }
+
+    /**
+     *(String keyword, long startTime, long endTime, byte status,
+     * byte timeSortType, byte readCountSortType, byte answerCountSortType, int start, int size
+     * @return
+     */
+    public List<Answer> searchAnswerByQuestionTitle(String keyword, long startTime, long endTime, byte timeSortType, byte praiseCountSortType, int start, int size) {
+
+        List<Question> questionList = null;
+        List<Answer> answerList = null;
+        List<Long> list = null;
+        try {
+            questionList = askService.searchQuestionByTitle(keyword, 0, 0, (byte) -1, (byte) -1, (byte) -1, (byte) -1, -1, 0);
+        } catch (Exception e) {
+            logger.error("invoke ask service failed! method : [ searchQuestionByTitle ]");
+            return null;
+        }
+        if (CollectionUtils.isNotEmpty(questionList)) {
+            list = new ArrayList<Long>(questionList.size());
+            for (Question question : questionList) {
+                if (question == null) {
+                    continue;
+                }
+                long questionId = question.getId();
+                list.add(questionId);
+            }
+        }
+        try {
+            answerList = answerService.searchAnswerByQuestionIdList(list, startTime, endTime, timeSortType, praiseCountSortType, start, size);
+        } catch (Exception e) {
+            logger.error("invoke answer service failed! method : [ searchAnswerByQuestionIdList ]" + e.getMessage());
+        }
+        return answerList;
     }
 }
