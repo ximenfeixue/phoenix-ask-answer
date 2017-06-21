@@ -47,7 +47,7 @@ public interface AnswerMongoDao {
     boolean updateAnswer(Answer answer) throws Exception;
 
     /**
-     * 查询答案列表 通过 userId
+     * 查询答案列表 通过 userId  $当问题不存在时 上级 会出现返回数据少$
      * @param userId
      * @return
      * @throws Exception
@@ -151,4 +151,19 @@ public interface AnswerMongoDao {
      * @throws Exception
      */
     List<Answer> searchAnswerByContent(String keyword, long startTime, long endTime, byte timeSortType, byte praiseCountSortType, int start, int size) throws Exception;
+
+    /**
+     * 批量 修改 答案状态 通过 questionId
+     * @param questionId
+     * @return
+     */
+    boolean batchUpdateAnswerStatus(long questionId);
+
+    /**
+     * 查询 所有答案 分页
+     * @param start
+     * @param size
+     * @return
+     */
+    List<Answer> getAllAnswer(int start, int size);
 }

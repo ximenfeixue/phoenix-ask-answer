@@ -4,13 +4,17 @@ import com.ginkgocap.parasol.associate.model.Associate;
 import com.ginkgocap.parasol.util.JsonUtils;
 import com.ginkgocap.ywxt.cache.Cache;
 import com.ginkgocap.ywxt.interlocution.model.*;
+import com.ginkgocap.ywxt.interlocution.service.AnswerService;
 import com.ginkgocap.ywxt.interlocution.service.AskService;
+import com.ginkgocap.ywxt.interlocution.utils.AskAnswerJsonUtils;
+import com.ginkgocap.ywxt.interlocution.web.Task.DataSyncTask;
 import com.ginkgocap.ywxt.interlocution.web.service.AskServiceLocal;
 import com.ginkgocap.ywxt.interlocution.web.service.AssociateServiceLocal;
 import com.ginkgocap.ywxt.user.model.User;
 import com.ginkgocap.ywxt.user.service.UserService;
 import com.gintong.frame.util.dto.CommonResultCode;
 import com.gintong.frame.util.dto.InterfaceResult;
+import com.gintong.ywxt.im.model.MessageNotify;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,10 +22,10 @@ import org.springframework.http.converter.json.MappingJacksonValue;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.persistence.criteria.CriteriaBuilder;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 
 /**
@@ -47,6 +51,12 @@ public class AskController extends BaseController{
 
     @Resource
     private Cache cache;
+
+    @Resource
+    private DataSyncTask dataSyncTask;
+
+    @Resource
+    private AnswerService answerService;
 
     @RequestMapping(method = RequestMethod.POST)
     public InterfaceResult create(HttpServletRequest request, HttpServletResponse response) {
@@ -230,15 +240,54 @@ public class AskController extends BaseController{
     public InterfaceResult delete(HttpServletRequest request, @PathVariable long id) {
 
         InterfaceResult result = null;
+        Question question = null;
         User user = this.getUser(request);
         if (user == null)
             return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PERMISSION_EXCEPTION);
+        try {
+            question = askService.getQuestionById(id);
+        } catch (Exception e) {
+            logger.error("invoke ask service failed! method : [ getQuestionById ]");
+            return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
+        }
+        if (question == null) {
+            result = InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_EXCEPTION);
+            result.getNotification().setNotifInfo("当前问题不存在或已删除");
+            return result;
+        }
+        String title = question.getTitle();
         try {
             logger.info("delete question id = " + id + " userId : " + user.getId());
             result = askService.deleteQuestion(id, user.getId());
         } catch (Exception e) {
             logger.error("invoke ask service failed! method [ deleteQuestion ] id:" + id);
             return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_DB_OPERATION_EXCEPTION);
+        }
+        // 删除 问题 成功 所做操作
+        if ("0".equals(result.getNotification().getNotifCode()) && (Boolean)result.getResponseData()) {
+            List<DataSync> dataList = new ArrayList<DataSync>();
+            List<Answer> answerList = null;
+            try {
+                answerList = answerService.getAnswerListByQuestionId(id, -1, -1);
+            } catch (Exception e) {
+                logger.error("invoke answer service failed! method : [ getAnswerListByQuestionId ]");
+            }
+            for (Answer answer : answerList) {
+                MessageNotify message = createMessageNotify(title, answer, user);
+                DataSync dataSync = new DataSync(0l, message);
+                dataList.add(dataSync);
+            }
+            dataSyncTask.batchSaveDataNeedSync(dataList);
+            // 批量修改 答案 状态
+            boolean flag = false;
+            try {
+                flag = answerService.batchUpdateAnswerStatus(id);
+            } catch (Exception e) {
+                logger.error("invoke answer service failed! method : [ batchUpdateAnswerStatus ]");
+            }
+            if (!flag) {
+                logger.error("batch update answer status failed!");
+            }
         }
         return result;
     }
@@ -335,6 +384,7 @@ public class AskController extends BaseController{
                 User user = userService.selectByPrimaryKey(userId);
                 question.setUserName(user.getName());
                 question.setPicPath(user.getPicPath());
+                question.setVirtual(user.isVirtual() ? (short) 1 : (short) 0);
                 PartAnswer topAnswer = question.getTopAnswer();
                 if (topAnswer != null) {
                     long answererId = topAnswer.getAnswererId();
@@ -428,7 +478,7 @@ public class AskController extends BaseController{
                 if (questionHome == null)
                     continue;
                 Question question = questionHome.getQuestion();
-                if (question ==  null)
+                if (question == null)
                     continue;
                 long userId = question.getUserId();
                 User qUser = userService.selectByPrimaryKey(userId);
@@ -511,5 +561,42 @@ public class AskController extends BaseController{
             }
         }
         return readCount;
+    }
+
+    private MessageNotify createMessageNotify(String title, Answer answer, User user) {
+
+        if (answer == null) {
+            logger.error("answer is null! so skip createMessage!");
+            return null;
+        }
+        MessageNotify message = new MessageNotify();
+        message.setTitle("删除了问题" + title);
+        message.setFromId(user.getId());
+        message.setFromName(user.getName());
+        message.setPicPath(user.getPicPath());
+        //message.setType(MessageNotifyType.E);
+        message.setType(16);
+        message.setToId(answer.getAnswererId());
+        message.setContent(convertToJson(answer.getQuestionId()));
+        final short virtual = user.isVirtual() ? (short) 1 : (short) 0;
+        message.setVirtual(virtual);
+
+        return message;
+    }
+
+    private String convertToJson(long questionId) {
+
+        Map<String, Object> map = mapContent(questionId);
+        return AskAnswerJsonUtils.writeObjectToJson(map);
+    }
+
+    private Map<String, Object> mapContent(long questionId) {
+
+        Map<String, Object> map = new HashMap<String, Object>(3);
+        //map.put("id", questionId);
+        map.put("operation", 0);  // 0：删除通知
+        //map.put("type", MessageNotifyType.EKnowledge.value());
+        map.put("type", 16);
+        return map;
     }
 }

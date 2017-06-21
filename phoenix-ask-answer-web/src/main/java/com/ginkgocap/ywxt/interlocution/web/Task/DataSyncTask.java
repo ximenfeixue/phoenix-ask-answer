@@ -4,11 +4,13 @@ import com.ginkgocap.ywxt.interlocution.model.DataSync;
 import com.ginkgocap.ywxt.interlocution.service.DataSyncService;
 import com.gintong.ywxt.im.model.MessageNotify;
 import com.gintong.ywxt.im.service.MessageNotifyService;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
@@ -36,6 +38,19 @@ public class DataSyncTask implements Runnable {
             addQueue(data);
         } catch (Exception ex) {
             logger.error("save sync data failed: dataSync: {}",data);
+            return false;
+        }
+        return true;
+    }
+
+    public boolean batchSaveDataNeedSync(List<DataSync> dataList) {
+
+        List<DataSync> list = null;
+        try {
+            list = dataSyncService.batchSaveDataSync(dataList);
+            batchAddQueue(list);
+        } catch (Exception e) {
+            logger.error("batch save data failed", dataList);
             return false;
         }
         return true;
@@ -95,4 +110,22 @@ public class DataSyncTask implements Runnable {
             logger.error("sync object is null, so skip it.");
         }
     }
+
+    public void batchAddQueue(List<DataSync> dataList) {
+
+        if (CollectionUtils.isNotEmpty(dataList)) {
+            for (DataSync data : dataList) {
+                if (data == null)
+                    continue;
+                try {
+                    dataSyncQueue.put(data);
+                } catch (Exception e) {
+                    logger.error("add sync data to queue failed!");
+                }
+            }
+        } else {
+            logger.error("sync list is null, so skip it");
+        }
+    }
+
 }

@@ -74,6 +74,10 @@ public class Answer implements Serializable{
      * 语音文件
      */
     private SpeechFile jtFile;
+    /**
+     * 答案 状态 0：正常 1：对应的问题已删除
+     */
+    private byte status;
 
     public long getId() {
         return id;
@@ -206,5 +210,13 @@ public class Answer implements Serializable{
 
     public void setJtFile(SpeechFile jtFile) {
         this.jtFile = jtFile;
+    }
+
+    public byte getStatus() {
+        return status;
+    }
+
+    public void setStatus(byte status) {
+        this.status = status;
     }
 }

@@ -13,6 +13,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -351,6 +352,7 @@ public class AskAnswerOtherController extends BaseController{
             try {
                 if (StringUtils.isNotBlank(keyword)) {
                     questionList = askService.searchQuestionByTitle(keyword, startTime, endTime, status, timeSortType, readCountSortType, answerCountSortType, start, size);
+                    questionList = convertQuestion(questionList);
                 }
             } catch (Exception e) {
                 logger.error("invoke ask service failed! method : [ searchQuestion ]");
@@ -358,9 +360,12 @@ public class AskAnswerOtherController extends BaseController{
             }
         } else {
             try {
-                list = returnListId(list, keyword);
+                if (StringUtils.isNotBlank(keyword)) {
+                    list = returnListId(list, keyword);
+                }
                 if (CollectionUtils.isNotEmpty(list)) {
                     questionList = askService.searchQuestionByUser(list, startTime, endTime, status, timeSortType, readCountSortType, answerCountSortType, start, size);
+                    questionList = convertQuestion(questionList);
                 }
             } catch (Exception e) {
                 logger.error("invoke ask service failed! method : [ searchQuestionByUser ]");
@@ -391,7 +396,6 @@ public class AskAnswerOtherController extends BaseController{
                                         @PathVariable byte praiseCountSortType, @PathVariable int start,
                                         @PathVariable int size) {
 
-        InterfaceResult result = null;
         List<Answer> answerList = null;
         List<Long> list = null;
         User yinUser = this.getYINUser(request);
@@ -402,23 +406,32 @@ public class AskAnswerOtherController extends BaseController{
         }
         if (keyType == 0) {
             try {
-                answerList = answerServiceLocal.searchAnswerByQuestionTitle(keyword, startTime, endTime, timeSortType, praiseCountSortType, start, size);
+                if (StringUtils.isNotBlank(keyword)) {
+                    answerList = answerServiceLocal.searchAnswerByQuestionTitle(keyword, startTime, endTime, timeSortType, praiseCountSortType, start, size);
+                    answerList = converAnswer(answerList);
+                }
             } catch (Exception e) {
                 logger.error("invoke answer local service failed! method : [ searchAnswerByQuestionTitle ]");
                 return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
             }
         } else if (keyType == 1) {
             try {
-                answerList = answerService.searchAnswerByContent(keyword, startTime, endTime, timeSortType, praiseCountSortType, start, size);
+                if (StringUtils.isNotBlank(keyword)) {
+                    answerList = answerService.searchAnswerByContent(keyword, startTime, endTime, timeSortType, praiseCountSortType, start, size);
+                    answerList = converAnswer(answerList);
+                }
             } catch (Exception e) {
                 logger.error("invoke answer service failed! method : [ searchAnswerByContent ]");
                 return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
             }
         } else if (keyType == 2) {
             try {
-                list = returnListId(list, keyword);
+                if (StringUtils.isNotBlank(keyword)) {
+                    list = returnListId(list, keyword);
+                }
                 if (CollectionUtils.isNotEmpty(list)) {
                     answerList = answerService.searchAnswerByUser(list, startTime, endTime, timeSortType, praiseCountSortType, start, size);
+                    answerList = converAnswer(answerList);
                 }
             } catch (Exception e) {
                 logger.error("invoke answer service failed! method : [ searchAnswerByUser ]");
@@ -475,5 +488,37 @@ public class AskAnswerOtherController extends BaseController{
             }
         }
         return list;
+    }
+
+    private List<Question> convertQuestion(List<Question> questionList) {
+
+        if (CollectionUtils.isNotEmpty(questionList)) {
+            for (Question question : questionList) {
+                if (question == null)
+                    continue;
+                long userId = question.getUserId();
+                User user = userService.selectByPrimaryKey(userId);
+                question.setUserName(user.getName());
+                question.setPicPath(user.getPicPath());
+                question.setVirtual(user.isVirtual() ? (short) 1 : (short) 0);
+            }
+        }
+        return questionList;
+    }
+
+    private List<Answer> converAnswer(List<Answer> answerList) {
+
+        if (CollectionUtils.isNotEmpty(answerList)) {
+            for (Answer answer : answerList) {
+                if (answer == null)
+                    continue;
+                long answererId = answer.getAnswererId();
+                User user = userService.selectByPrimaryKey(answererId);
+                answer.setAnswererName(user.getName());
+                answer.setAnswererPicPath(user.getPicPath());
+                answer.setVirtual(user.isVirtual() ? (short) 1 : (short) 0);
+            }
+        }
+        return answerList;
     }
 }

@@ -1,6 +1,7 @@
 package com.ginkgocap.ywxt.interlocution.web.Task;
 
 import com.ginkgocap.ywxt.cache.Cache;
+import com.ginkgocap.ywxt.interlocution.model.Answer;
 import com.ginkgocap.ywxt.interlocution.model.Question;
 import com.ginkgocap.ywxt.interlocution.service.AnswerService;
 import com.ginkgocap.ywxt.interlocution.service.AskService;
@@ -32,7 +33,7 @@ public class DataSyncRedis implements InitializingBean, Runnable{
     public void afterPropertiesSet() throws Exception {
 
         logger.info("data sync start ...");
-        //new Thread(this, "fei sync data .... ^-^").start();
+        new Thread(this, "fei sync data .... ^-^").start();
         logger.info("data sync end ...");
     }
 
@@ -40,11 +41,35 @@ public class DataSyncRedis implements InitializingBean, Runnable{
     public void run() {
 
         try {
-            updateData();
+            //updateData();
+            updateAnswerData();
         } catch (Exception e) {
             logger.error("update data failed!");
         }
     }
+
+    private void updateAnswerData() throws Exception{
+
+        int total = 0;
+        int start = 0;
+        final int size = 20;
+        List<Answer> answerList = answerService.getAllAnswer(start++, size);
+        while (CollectionUtils.isNotEmpty(answerList)) {
+            for (Answer answer : answerList) {
+                long questionId = answer.getQuestionId();
+                Question question = askService.getQuestionById(questionId);
+                if (question == null) {
+                    answer.setStatus((byte) 1);
+                    answerService.updateAnswer(answer);
+                    logger.info("update answer id : " + answer.getId() + "success");
+                }
+            }
+            total += answerList.size();
+            answerList = answerService.getAllAnswer(start++, size);
+        }
+        logger.info("update answer status success count : " + total);
+    }
+
     private void updateData() throws Exception{
 
         int total = 0;

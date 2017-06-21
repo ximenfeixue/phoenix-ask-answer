@@ -5,19 +5,18 @@ import com.ginkgocap.ywxt.interlocution.model.Answer;
 import com.ginkgocap.ywxt.interlocution.model.Constant;
 import com.ginkgocap.ywxt.interlocution.model.Question;
 import com.ginkgocap.ywxt.interlocution.service.AskAnswerCommonService;
-import com.mongodb.BasicDBList;
-import com.mongodb.BasicDBObject;
-import com.mongodb.CommandResult;
-import com.mongodb.DBObject;
+import com.mongodb.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.UncategorizedMongoDbException;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.Resource;
@@ -55,8 +54,10 @@ public class AnswerMongoDaoImpl implements AnswerMongoDao {
             size = (int)count - index;
         }
         query.with(new Sort(Sort.Direction.DESC, Constant.TOP).and(new Sort(Sort.Direction.DESC, Constant.PRAISE_COUNT)).and(new Sort(Sort.Direction.ASC, Constant.CREATE_TIME)));
-        query.skip(index);
-        query.limit(size);
+        if (size > 0) {
+            query.skip(index);
+            query.limit(size);
+        }
         return mongoTemplate.find(query, Answer.class, Constant.Collection.ANSWER);
     }
 
@@ -106,6 +107,8 @@ public class AnswerMongoDaoImpl implements AnswerMongoDao {
         if (userId < 0)
             throw new IllegalArgumentException("userId is error");
         Query query = new Query(Criteria.where(Constant.ANSWERER_ID).is(userId));
+        // 查询 答案 所对应的问题 未被删除
+        query.addCriteria(Criteria.where("status").is(0));
         long count = mongoTemplate.count(query, Answer.class, Constant.Collection.ANSWER);
         int index = start * size;
         if (index > count) {
@@ -219,13 +222,31 @@ public class AnswerMongoDaoImpl implements AnswerMongoDao {
         return search(query, startTime, endTime, timeSortType, praiseCountSortType, start, size);
     }
 
+    public boolean batchUpdateAnswerStatus(long questionId) {
+
+        Query query = new Query(Criteria.where("questionId").is(questionId));
+        Update update = new Update();
+        update.set("status", (byte) 1);
+        WriteResult writeResult = mongoTemplate.updateMulti(query, update, Answer.class);
+        return writeResult.getN() > 0;
+    }
+
+    public List<Answer> getAllAnswer(int start, int size) {
+
+        if (start < 0 || size < 0)
+            throw new IllegalArgumentException("start or size param is error");
+        int index = 0;
+        index = start * size;
+        Query query = new Query();
+        query.skip(index);
+        query.limit(size);
+        return mongoTemplate.find(query, Answer.class, Constant.Collection.ANSWER);
+    }
+
     private List<Answer> search(Query query, long startTime, long endTime, byte timeSortType, byte praiseCountSortType, int start, int size) {
 
-        if (startTime > 0) {
-            query.addCriteria(Criteria.where(Constant.CREATE_TIME).gte(startTime));
-        }
-        if (endTime > 0) {
-            query.addCriteria(Criteria.where(Constant.CREATE_TIME).lte(endTime));
+        if (startTime > 0 && endTime > 0) {
+            query.addCriteria(Criteria.where(Constant.CREATE_TIME).gte(startTime).lte(endTime));
         }
         long count = mongoTemplate.count(query, Answer.class, Constant.Collection.ANSWER);
         int index = start * size;

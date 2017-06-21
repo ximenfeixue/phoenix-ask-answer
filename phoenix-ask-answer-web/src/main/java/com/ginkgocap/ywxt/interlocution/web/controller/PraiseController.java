@@ -293,7 +293,7 @@ public class PraiseController extends BaseController{
 
     private Map<String, Object> mapContent(long answerId, long questionId) {
 
-        Map<String, Object> map = new HashMap<String, Object>(2);
+        Map<String, Object> map = new HashMap<String, Object>(3);
         map.put("id", answerId);
         map.put("questionId", questionId);
         map.put("type", MessageNotifyType.EAskAnswerApprove.value());

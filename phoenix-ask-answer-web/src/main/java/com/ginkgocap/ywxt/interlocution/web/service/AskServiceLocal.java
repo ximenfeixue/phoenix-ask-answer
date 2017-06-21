@@ -59,9 +59,7 @@ public class AskServiceLocal {
 
     public List<QuestionHome> getAnswerByUId(long userId, int start, int size) throws Exception{
 
-        List<QuestionHome> questionHomeList = new ArrayList<QuestionHome>();
-        /*QuestionHome questionHome = new QuestionHome();
-        QuestionHome base = null;*/
+        List<QuestionHome> questionHomeList = new ArrayList<QuestionHome>(size);
         List<Answer> answerList = null;
         try {
             answerList = answerService.getAnswerByUId(userId, start, size);
@@ -81,12 +79,14 @@ public class AskServiceLocal {
                 }
                 if (question != null) {
                     QuestionHome base = new QuestionHome();
-                    //base = questionHome;
                     base.setAnswer(answer);
                     base.setQuestion(question);
                     questionHomeList.add(base);
                 }
             }
+        }
+        if (questionHomeList.size() < size) {
+
         }
         return questionHomeList;
     }

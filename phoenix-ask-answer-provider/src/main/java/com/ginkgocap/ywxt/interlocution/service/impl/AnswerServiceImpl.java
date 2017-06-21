@@ -179,4 +179,16 @@ public class AnswerServiceImpl implements AnswerService {
         return answerMongoDao.searchAnswerByContent(keyword, startTime, endTime, timeSortType, praiseCountSortType, start, size);
     }
 
+    @Override
+    public boolean batchUpdateAnswerStatus(long questionId) {
+
+        return answerMongoDao.batchUpdateAnswerStatus(questionId);
+    }
+
+    @Override
+    public List<Answer> getAllAnswer(int start, int size) {
+
+        return answerMongoDao.getAllAnswer(start, size);
+    }
+
 }

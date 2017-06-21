@@ -6,6 +6,7 @@ import com.ginkgocap.ywxt.interlocution.model.Question;
 import com.ginkgocap.ywxt.interlocution.model.QuestionCollect;
 import com.ginkgocap.ywxt.interlocution.model.QuestionReport;
 import com.ginkgocap.ywxt.interlocution.service.AskAnswerCommonService;
+import com.mongodb.WriteResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -285,11 +286,8 @@ public class AskMongoDaoImpl implements AskMongoDao {
 
     private List<Question> search(Query query, long startTime, long endTime, byte status, byte timeSortType, byte readCountSortType, byte answerCountSortType, int start, int size) {
 
-        if (startTime > 0) {
-            query.addCriteria(Criteria.where(Constant.CREATE_TIME).gte(startTime));
-        }
-        if (endTime > 0) {
-            query.addCriteria(Criteria.where(Constant.CREATE_TIME).lte(endTime));
+        if (startTime > 0 && endTime > 0) {
+            query.addCriteria(Criteria.where(Constant.CREATE_TIME).gte(startTime).lte(endTime));
         }
         if (status < 2 && status > -1) {
             query.addCriteria(Criteria.where("disabled").is(status));

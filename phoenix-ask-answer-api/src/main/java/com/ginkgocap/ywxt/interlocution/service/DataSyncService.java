@@ -11,6 +11,8 @@ public interface DataSyncService {
 
     long saveDataSync(DataSync data);
 
+    List<DataSync> batchSaveDataSync(List<DataSync> dataList);
+
     boolean deleteDataSync(final long id);
 
     List<DataSync> getDataSyncList();

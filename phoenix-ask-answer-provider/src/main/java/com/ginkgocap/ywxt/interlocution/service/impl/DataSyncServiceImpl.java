@@ -12,7 +12,7 @@ import java.util.List;
  * Created by Wang fei on 2017/5/31.
  */
 @Service("dataSyncService")
-public class DataSyncServiceImpl implements DataSyncService{
+public class DataSyncServiceImpl implements DataSyncService {
 
     @Resource
     private DataSyncMongoDao dataSyncMongoDao;
@@ -21,6 +21,12 @@ public class DataSyncServiceImpl implements DataSyncService{
     public long saveDataSync(DataSync data) {
 
         return dataSyncMongoDao.saveDataSync(data);
+    }
+
+    @Override
+    public List<DataSync> batchSaveDataSync(List<DataSync> dataList) {
+
+        return dataSyncMongoDao.batchSaveDataSync(dataList);
     }
 
     @Override

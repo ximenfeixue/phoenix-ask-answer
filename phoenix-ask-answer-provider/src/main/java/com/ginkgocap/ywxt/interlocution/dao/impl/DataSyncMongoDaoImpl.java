@@ -36,13 +36,27 @@ public class DataSyncMongoDaoImpl implements DataSyncMongoDao{
         Long sequenceId = askAnswerCommonService.getInterlocutionSequenceId();
         data.setId(sequenceId);
         try {
-            mongoTemplate.save(sequenceId, Constant.Collection.DATA_SYNC);
+            mongoTemplate.insert(data, Constant.Collection.DATA_SYNC);
 
         } catch (Exception e) {
             logger.error("save dataSync failed! id :" + sequenceId + "[message]" + e.getMessage());
             return -1;
         }
         return sequenceId;
+    }
+
+    public List<DataSync> batchSaveDataSync(List<DataSync> dataList) {
+
+        for (DataSync data : dataList) {
+            data.setId(askAnswerCommonService.getInterlocutionSequenceId());
+        }
+        try {
+            mongoTemplate.insert(dataList, Constant.Collection.DATA_SYNC);
+        } catch (Exception e) {
+            logger.error("save dataSync failed! [message]" + e.getMessage());
+            return null;
+        }
+        return dataList;
     }
 
     public boolean deleteDataSync(final long id) {
