@@ -61,7 +61,11 @@ public class DataSyncRedis implements InitializingBean, Runnable{
                 if (question == null) {
                     answer.setStatus((byte) 1);
                     answerService.updateAnswer(answer);
-                    logger.info("update answer id : " + answer.getId() + "success");
+                    logger.info("update answer id : " + answer.getId() + " success");
+                } else {
+                    answer.setStatus((byte) 0);
+                    answerService.updateAnswer(answer);
+                    logger.info("update answer id : " + answer.getId() + " success");
                 }
             }
             total += answerList.size();
