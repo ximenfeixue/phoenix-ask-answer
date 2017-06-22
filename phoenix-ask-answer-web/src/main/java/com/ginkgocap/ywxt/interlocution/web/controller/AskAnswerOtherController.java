@@ -5,6 +5,7 @@ import com.ginkgocap.ywxt.interlocution.model.*;
 import com.ginkgocap.ywxt.interlocution.service.AnswerService;
 import com.ginkgocap.ywxt.interlocution.service.AskService;
 import com.ginkgocap.ywxt.interlocution.web.service.AnswerServiceLocal;
+import com.ginkgocap.ywxt.user.form.DataGridModel;
 import com.ginkgocap.ywxt.user.model.User;
 import com.ginkgocap.ywxt.user.service.UserService;
 import com.gintong.frame.util.dto.CommonResultCode;
@@ -236,6 +237,17 @@ public class AskAnswerOtherController extends BaseController{
                 logger.error("invoke ask service failed! method : [ deleteQuestion ]");
                 return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
             }
+            if ("0".equals(result.getNotification().getNotifCode()) && (Boolean) result.getResponseData()) {
+                boolean flag = false;
+                try {
+                    flag = answerService.batchUpdateAnswerStatus(id);
+                } catch (Exception e) {
+                    logger.error("invoke answer service failed! method : [ batchUpdateAnswerStatus ]");
+                }
+                if (!flag) {
+                    logger.warn("batch update answer status failed! or no answer!");
+                }
+            }
         } else {
              result = answerServiceLocal.removeAnswer(id);
         }
@@ -327,9 +339,9 @@ public class AskAnswerOtherController extends BaseController{
      * @param startTime 前端不查询 开始时间 则 传0
      * @param endTime 前端不查询 结束时间 则 传0
      * @param status 问题 状态 0：正常 1：禁用 -1：全部
-     * @Param timeSortType 按照 发布时间排序 0：降序 1：升序
-     * @Param readCountSortType 按照 阅读数排序 0：降序 1：升序
-     * @Param answerCountSortType  按照 回答数排序 0：降序 1：升序
+     * @Param timeSortType 按照 发布时间排序 0：降序 1：升序 -1: 不排序
+     * @Param readCountSortType 按照 阅读数排序 0：降序 1：升序 -1：不排序
+     * @Param answerCountSortType  按照 回答数排序 0：降序 1：升序 -1：不排序
      * @param start 第 0,1,2...页
      * @param size 每页 显示条数
      * @return
@@ -348,6 +360,9 @@ public class AskAnswerOtherController extends BaseController{
         User yinUser = this.getYINUser(request);
         if (yinUser == null)
             return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PERMISSION_EXCEPTION);
+        if (endTime < startTime) {
+            return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_EXCEPTION);
+        }
         if (keyType == 0) {
             try {
                 if (StringUtils.isNotBlank(keyword)) {
@@ -383,8 +398,8 @@ public class AskAnswerOtherController extends BaseController{
      * @param keyword 模糊查询的 关键词
      * @param startTime
      * @param endTime
-     * @Param timeSortType 按照 发布时间 排序 0：降序 1：升序
-     * @Param praiseCountType 按照 点赞数 排序 0：降序 1：升序
+     * @Param timeSortType 按照 发布时间 排序 0：降序 1：升序 -1：不排序
+     * @Param praiseCountType 按照 点赞数 排序 0：降序 1：升序 -1：不排序
      * @param start 第 0，1，2...页
      * @param size 每页 显示条数
      * @return
@@ -401,7 +416,7 @@ public class AskAnswerOtherController extends BaseController{
         User yinUser = this.getYINUser(request);
         if (yinUser == null)
             return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PERMISSION_EXCEPTION);
-        if (endTime > startTime) {
+        if (endTime < startTime) {
             return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_EXCEPTION);
         }
         if (keyType == 0) {
@@ -471,21 +486,40 @@ public class AskAnswerOtherController extends BaseController{
 
         Map<String, Object> map = null;
         try {
-            map = userService.selectByMember(keyword, null, null, null, null);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        if (map != null) {
-            List<User> userList = (List<User>) map.get("rows");
-            if (CollectionUtils.isNotEmpty(userList)) {
-                list = new ArrayList<Long>(userList.size());
-                for (User user : userList) {
-                    if (user == null)
-                        continue;
-                    long userId = user.getId();
-                    list.add(userId);
+            DataGridModel model = new DataGridModel();
+            int page = 1;
+            final int size = 20;
+            model.setRows(size);
+            model.setPage(page);
+            map = userService.selectIdListByMember(keyword, null, null, null, model);
+            if (map != null) {
+                Long total = (Long) map.get("total");
+                if (total > 0) {
+                    list = new ArrayList<Long>(total.intValue());
+                    List<Long> idList = (List<Long>) map.get("rows");
+                    for (Long id : idList) {
+                        if (id == null)
+                            continue;
+                        list.add(id);
+                    }
+                    int totalInt = total.intValue();
+                    int count = totalInt % size == 0 ? totalInt / size - 1: totalInt / size;
+                    if (count > 0) {
+                        for (int i = 0; i < count; i++) {
+                            model.setPage(++page);
+                            map = userService.selectIdListByMember(keyword, null, null, null, model);
+                            idList = (List<Long>) map.get("rows");
+                            for (Long id : idList) {
+                                if (id == null)
+                                    continue;
+                                list.add(id);
+                            }
+                        }
+                    }
                 }
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return list;
     }

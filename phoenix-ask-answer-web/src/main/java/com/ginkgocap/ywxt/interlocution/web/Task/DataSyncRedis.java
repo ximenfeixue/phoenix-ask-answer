@@ -33,7 +33,7 @@ public class DataSyncRedis implements InitializingBean, Runnable{
     public void afterPropertiesSet() throws Exception {
 
         logger.info("data sync start ...");
-        new Thread(this, "fei sync data .... ^-^").start();
+        //new Thread(this, "fei sync data .... ^-^").start();
         logger.info("data sync end ...");
     }
 
@@ -52,6 +52,8 @@ public class DataSyncRedis implements InitializingBean, Runnable{
 
         int total = 0;
         int start = 0;
+        int totalCount = 0;
+        int startCount = 0;
         final int size = 20;
         List<Answer> answerList = answerService.getAllAnswer(start++, size);
         while (CollectionUtils.isNotEmpty(answerList)) {
@@ -71,7 +73,22 @@ public class DataSyncRedis implements InitializingBean, Runnable{
             total += answerList.size();
             answerList = answerService.getAllAnswer(start++, size);
         }
+
         logger.info("update answer status success count : " + total);
+        List<Question> allQuestion = askService.getAllQuestion(startCount++, size);
+        while (CollectionUtils.isNotEmpty(allQuestion)) {
+            for (Question question : allQuestion) {
+                if (question == null)
+                    continue;
+                question.setDisabled((byte) 0);
+                askService.updateQuestion(question);
+                logger.info("update question id : " + question.getId() + " success");
+            }
+            totalCount += allQuestion.size();
+            allQuestion = askService.getAllQuestion(startCount++, size);
+        }
+
+        logger.info("update question disabled success count : " + totalCount);
     }
 
     private void updateData() throws Exception{

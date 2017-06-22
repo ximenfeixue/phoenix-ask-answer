@@ -61,6 +61,7 @@ public class AskMongoDaoImpl implements AskMongoDao {
             criteria = Criteria.where("status").is(status);
         }
         Query query = new Query(criteria);
+        query.addCriteria(Criteria.where("disabled").is(0));
         long count = mongoTemplate.count(query, Question.class, Constant.Collection.QUESTION);
         int index = start * size;
         if (index > count) {

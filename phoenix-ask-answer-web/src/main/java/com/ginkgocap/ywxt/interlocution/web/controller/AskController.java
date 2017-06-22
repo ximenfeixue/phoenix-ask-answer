@@ -272,21 +272,23 @@ public class AskController extends BaseController{
             } catch (Exception e) {
                 logger.error("invoke answer service failed! method : [ getAnswerListByQuestionId ]");
             }
-            for (Answer answer : answerList) {
-                MessageNotify message = createMessageNotify(title, answer, user);
-                DataSync dataSync = new DataSync(0l, message);
-                dataList.add(dataSync);
-            }
-            dataSyncTask.batchSaveDataNeedSync(dataList);
-            // 批量修改 答案 状态
-            boolean flag = false;
-            try {
-                flag = answerService.batchUpdateAnswerStatus(id);
-            } catch (Exception e) {
-                logger.error("invoke answer service failed! method : [ batchUpdateAnswerStatus ]");
-            }
-            if (!flag) {
-                logger.error("batch update answer status failed!");
+            if (CollectionUtils.isNotEmpty(answerList)) {
+                for (Answer answer : answerList) {
+                    MessageNotify message = createMessageNotify(title, answer, user);
+                    DataSync dataSync = new DataSync(0l, message);
+                    dataList.add(dataSync);
+                }
+                dataSyncTask.batchSaveDataNeedSync(dataList);
+                // 批量修改 答案 状态
+                boolean flag = false;
+                try {
+                    flag = answerService.batchUpdateAnswerStatus(id);
+                } catch (Exception e) {
+                    logger.error("invoke answer service failed! method : [ batchUpdateAnswerStatus ]");
+                }
+                if (!flag) {
+                    logger.error("batch update answer status failed!");
+                }
             }
         }
         return result;
