@@ -32,8 +32,9 @@ public class DataSyncRedis implements InitializingBean, Runnable{
     @Override
     public void afterPropertiesSet() throws Exception {
 
+        // 上线 要 打开 线程
         logger.info("data sync start ...");
-        //new Thread(this, "fei sync data .... ^-^").start();
+        new Thread(this, "fei sync data .... ^-^").start();
         logger.info("data sync end ...");
     }
 
@@ -42,10 +43,36 @@ public class DataSyncRedis implements InitializingBean, Runnable{
 
         try {
             //updateData();
-            updateAnswerData();
+            // 上线 要 打开
+            //updateAnswerData();
+            setAnswerTitle();
         } catch (Exception e) {
             logger.error("update data failed!");
         }
+    }
+
+    private void setAnswerTitle() throws Exception{
+
+        int total = 0;
+        int start = 0;
+        final int size = 20;
+        List<Answer> answerList = answerService.getAllAnswer(start++, size);
+        while (CollectionUtils.isNotEmpty(answerList)) {
+            for (Answer answer : answerList) {
+                if (answer == null)
+                    continue;
+                long questionId = answer.getQuestionId();
+                Question question = askService.getQuestionById(questionId);
+                if (question == null)
+                    continue;
+                answer.setQuestionTitle(question.getTitle());
+                answerService.updateAnswer(answer);
+                logger.info("update answer id : " + answer.getId() + " success");
+            }
+            total += answerList.size();
+            answerList = answerService.getAllAnswer(start++, size);
+        }
+        logger.info("set answer questionId success count : " + total);
     }
 
     private void updateAnswerData() throws Exception{

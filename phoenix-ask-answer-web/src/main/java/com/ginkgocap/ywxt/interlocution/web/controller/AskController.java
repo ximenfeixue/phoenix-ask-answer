@@ -12,6 +12,7 @@ import com.ginkgocap.ywxt.interlocution.web.service.AskServiceLocal;
 import com.ginkgocap.ywxt.interlocution.web.service.AssociateServiceLocal;
 import com.ginkgocap.ywxt.user.model.User;
 import com.ginkgocap.ywxt.user.service.UserService;
+import com.gintong.frame.util.Page;
 import com.gintong.frame.util.dto.CommonResultCode;
 import com.gintong.frame.util.dto.InterfaceResult;
 import com.gintong.ywxt.im.model.MessageNotify;
@@ -22,7 +23,6 @@ import org.springframework.http.converter.json.MappingJacksonValue;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import javax.persistence.criteria.CriteriaBuilder;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.*;
@@ -184,6 +184,7 @@ public class AskController extends BaseController{
                                          @PathVariable int start, @PathVariable int size) {
 
         InterfaceResult result = null;
+        long count = 0;
         User user = this.getUser(request);
         if (user == null) {
             return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PERMISSION_EXCEPTION);
@@ -196,28 +197,57 @@ public class AskController extends BaseController{
             try {
                 questionList = askService.getQuestionByUId(userId, start, size);
                 questionList = convertList(questionList, userId);
-                result = InterfaceResult.getSuccessInterfaceResultInstance(questionList);
             } catch (Exception e) {
                 logger.error("invoke ask service failed! method : [getQuestionByUId]" + "userId:" + userId);
-                result = InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
+                return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
+            }
+            if (isWeb(request)) {
+                try {
+                    count = askService.countQuestionByUId(userId);
+                } catch (Exception e) {
+                    logger.error("invoke ask service failed! method : [ countQuestionByUId ]. userId : " + userId);
+                    return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
+                }
+                result = convertMyQuestionPage(questionList, count, start, size);
+            } else {
+                result = InterfaceResult.getSuccessInterfaceResultInstance(questionList);
             }
         } else if (askAnswerType == 1) {
             try {
                 questionHomeList = askServiceLocal.getAnswerByUId(userId, start, size);
                 questionHomeList = convertMyAnswerList(questionHomeList, user);
-                result = InterfaceResult.getSuccessInterfaceResultInstance(questionHomeList);
             } catch (Exception e) {
-                logger.error("invoke ask service local failed! method : [ getAnswerByUId ]");
-                result = InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
+                logger.error("invoke ask service local failed! method : [ getAnswerByUId ] userId : " + userId);
+                return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
+            }
+            if (isWeb(request)) {
+                try {
+                    count = answerService.countAnswerByUId(userId);
+                } catch (Exception e) {
+                    logger.error("invoke answer service failed! method : [ countAnswerByUId ] userId : " + userId);
+                }
+                result = convertMyAnswerPage(questionHomeList, count, start, size);
+            } else {
+                result = InterfaceResult.getSuccessInterfaceResultInstance(questionHomeList);
             }
         } else if (askAnswerType == 2) {
             try {
                 questionCollectList = askService.getCollectByUId(userId, start, size);
                 questionCollectList = convertMyCollectList(questionCollectList);
-                result = InterfaceResult.getSuccessInterfaceResultInstance(questionCollectList);
             } catch (Exception e) {
                 logger.error("invoke ask service failed! method : [ getCollectByUId ]");
-                result = InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
+                return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
+            }
+            if (isWeb(request)) {
+                try {
+                    count = askService.countQuestionCollectByUId(userId);
+                } catch (Exception e) {
+                    logger.error("invoke ask service failed! method : [ countQuestionCollectByUId ]  userId : " + userId);
+                    return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
+                }
+                result = convertMyCollectQuestionPage(questionCollectList, count, start, size);
+            } else {
+                result = InterfaceResult.getSuccessInterfaceResultInstance(questionCollectList);
             }
         } else {
             /*try {
@@ -600,5 +630,35 @@ public class AskController extends BaseController{
         //map.put("type", MessageNotifyType.EKnowledge.value());
         map.put("type", 16);
         return map;
+    }
+
+    private InterfaceResult convertMyQuestionPage(List<Question> questionList, long count, int start, int size) {
+
+        Page<Question> page = new Page<Question>();
+        page.setList(questionList);
+        page.setTotalCount(count);
+        page.setPageNo(start + 1);
+        page.setPageSize(size);
+        return InterfaceResult.getSuccessInterfaceResultInstance(page);
+    }
+
+    private InterfaceResult convertMyAnswerPage(List<QuestionHome> questionHomeList, long count, int start, int size) {
+
+        Page<QuestionHome> page = new Page<QuestionHome>();
+        page.setTotalCount(count);
+        page.setList(questionHomeList);
+        page.setPageNo(start + 1);
+        page.setPageSize(size);
+        return InterfaceResult.getSuccessInterfaceResultInstance(page);
+    }
+
+    private InterfaceResult convertMyCollectQuestionPage(List<QuestionCollect> questionCollectList, long count, int start, int size) {
+
+        Page<QuestionCollect> page = new Page<QuestionCollect>();
+        page.setTotalCount(count);
+        page.setList(questionCollectList);
+        page.setPageNo(start + 1);
+        page.setPageSize(size);
+        return InterfaceResult.getSuccessInterfaceResultInstance(page);
     }
 }

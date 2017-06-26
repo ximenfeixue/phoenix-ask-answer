@@ -116,7 +116,7 @@ public class AskMongoDaoImpl implements AskMongoDao {
         if (userId < 0 || start < 0 || size < 0)
             throw new IllegalArgumentException("param is error");
         Query query = new Query(Criteria.where(Constant.USER_ID).is(userId));
-        long count = mongoTemplate.count(query, Question.class, Constant.Collection.QUESTION);
+        long count = countQuestionByUId(userId);
         int index = start * size;
         if (index > count) {
             logger.error("because of index > count , so return null. index :" + index + " count :" + count);
@@ -126,6 +126,14 @@ public class AskMongoDaoImpl implements AskMongoDao {
         query.skip(index);
         query.limit(size);
         return mongoTemplate.find(query, Question.class, Constant.Collection.QUESTION);
+    }
+
+    public long countQuestionByUId(long userId) {
+
+        if (userId < 0)
+            throw new IllegalArgumentException("param is error");
+        Query query = new Query(Criteria.where(Constant.USER_ID).is(userId));
+        return mongoTemplate.count(query, Question.class, Constant.Collection.QUESTION);
     }
 
     public QuestionCollect addCollect(QuestionCollect collect) throws Exception {
@@ -164,7 +172,7 @@ public class AskMongoDaoImpl implements AskMongoDao {
             throw new IllegalArgumentException("param is error");
 
         Query query = new Query(Criteria.where(Constant.USER_ID).is(userId));
-        long count = mongoTemplate.count(query, QuestionCollect.class, Constant.Collection.QUESTION_COLLECT);
+        long count = countQuestionCollectByUId(userId);
         int index = start * size;
         if (index > count) {
             logger.error("because of index > count , so return null .index :" + index + "count :" + count);
@@ -174,6 +182,14 @@ public class AskMongoDaoImpl implements AskMongoDao {
         query.skip(index);
         query.limit(size);
         return mongoTemplate.find(query, QuestionCollect.class, Constant.Collection.QUESTION_COLLECT);
+    }
+
+    public long countQuestionCollectByUId(long userId) {
+
+        if (userId < 0)
+            throw new IllegalArgumentException("userId < 0 is error");
+        Query query = new Query(Criteria.where(Constant.USER_ID).is(userId));
+        return mongoTemplate.count(query, QuestionCollect.class, Constant.Collection.QUESTION_COLLECT);
     }
 
     public QuestionCollect getCollectByUIdQuestionId(long userId, long questionId) throws Exception {
@@ -278,11 +294,35 @@ public class AskMongoDaoImpl implements AskMongoDao {
         return search(query, startTime, endTime, status, timeSortType, readCountSortType, answerCountSortType, start, size);
     }
 
+    public long countQuestionByUser(List<Long> userIdList, long startTime, long endTime, byte status) {
+
+        Query query = new Query(Criteria.where(Constant.USER_ID).in(userIdList));
+        if (startTime > 0 && endTime > 0) {
+            query.addCriteria(Criteria.where(Constant.CREATE_TIME).gte(startTime).lte(endTime));
+        }
+        if (status < 2 && status > -1) {
+            query.addCriteria(Criteria.where("disabled").is(status));
+        }
+        return mongoTemplate.count(query, Question.class, Constant.Collection.QUESTION);
+    }
+
     public List<Question> searchQuestionByTitle(String keyword, long startTime, long endTime, byte status, byte timeSortType, byte readCountSortType, byte answerCountSortType, int start, int size) {
 
         Query query = new Query(Criteria.where("title").regex(".*?" + keyword + ".*"));
 
         return search(query, startTime, endTime, status, timeSortType, readCountSortType, answerCountSortType, start, size);
+    }
+
+    public long countQuestionByTitle(String keyword, long startTime, long endTime, byte status) {
+
+        Query query = new Query(Criteria.where("title").regex(".*?" + keyword + ".*"));
+        if (startTime > 0 && endTime > 0) {
+            query.addCriteria(Criteria.where(Constant.CREATE_TIME).gte(startTime).lte(endTime));
+        }
+        if (status < 2 && status > -1) {
+            query.addCriteria(Criteria.where("disabled").is(status));
+        }
+        return mongoTemplate.count(query, Question.class, Constant.Collection.QUESTION);
     }
 
     private List<Question> search(Query query, long startTime, long endTime, byte status, byte timeSortType, byte readCountSortType, byte answerCountSortType, int start, int size) {

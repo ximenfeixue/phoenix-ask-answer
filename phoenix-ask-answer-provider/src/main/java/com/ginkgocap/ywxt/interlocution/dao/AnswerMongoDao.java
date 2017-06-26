@@ -125,6 +125,15 @@ public interface AnswerMongoDao {
     List<Answer> searchAnswerByUser(List<Long> list, long startTime, long endTime, byte timeSortType, byte praiseCountSortType, int start, int size) throws Exception;
 
     /**
+     * 通过 用户 id list 查询答案 总个数
+     * @param list
+     * @param startTime
+     * @param endTime
+     * @return
+     */
+    long countAnswerByUser(List<Long> list, long startTime, long endTime);
+
+    /**
      * 搜索答案 通过 question id list
      * @param questionIdList
      * @param startTime
@@ -139,6 +148,15 @@ public interface AnswerMongoDao {
     List<Answer> searchAnswerByQuestionIdList(List<Long> questionIdList, long startTime, long endTime, byte timeSortType, byte praiseCountSortType, int start, int size) throws Exception;
 
     /**
+     * 通过 question id list 查询 总个数
+     * @param list
+     * @param startTime
+     * @param endTime
+     * @return
+     */
+    long countAnswerByQuestionIdList(List<Long> list, long startTime, long endTime);
+
+    /**
      * 搜索答案 通过 答案 内容 模糊查询
      * @param keyword
      * @param startTime
@@ -151,6 +169,15 @@ public interface AnswerMongoDao {
      * @throws Exception
      */
     List<Answer> searchAnswerByContent(String keyword, long startTime, long endTime, byte timeSortType, byte praiseCountSortType, int start, int size) throws Exception;
+
+    /**
+     * 通过 关键字 查询 答案 总个数
+     * @param keyword
+     * @param startTime
+     * @param endTime
+     * @return
+     */
+    long countAnswerByContent(String keyword, long startTime, long endTime);
 
     /**
      * 批量 修改 答案状态 通过 questionId

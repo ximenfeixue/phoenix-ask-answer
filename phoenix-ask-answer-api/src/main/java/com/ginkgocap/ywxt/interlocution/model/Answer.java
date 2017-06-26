@@ -78,6 +78,10 @@ public class Answer implements Serializable{
      * 答案 状态 0：正常 1：对应的问题已删除
      */
     private byte status;
+    /**
+     * 问题 标题
+     */
+    private String questionTitle;
 
     public long getId() {
         return id;
@@ -218,5 +222,13 @@ public class Answer implements Serializable{
 
     public void setStatus(byte status) {
         this.status = status;
+    }
+
+    public String getQuestionTitle() {
+        return questionTitle;
+    }
+
+    public void setQuestionTitle(String questionTitle) {
+        this.questionTitle = questionTitle;
     }
 }

@@ -70,6 +70,13 @@ public interface AskService {
      * @throws Exception
      */
     List<Question> getQuestionByUId(long userId, int start, int size) throws Exception;
+
+    /**
+     * 查询 个数 通过 userId
+     * @param userId
+     * @return
+     */
+    long countQuestionByUId(long userId);
     /**
      * 收藏 问题
      * @param collect
@@ -98,6 +105,13 @@ public interface AskService {
      * @throws Exception
      */
     List<QuestionCollect> getCollectByUId(long userId, int start, int size) throws Exception;
+
+    /**
+     * 查询 我的 收藏 列表 个数
+     * @param userId
+     * @return
+     */
+    long countQuestionCollectByUId(long userId);
     /**
      * 查询收藏问题 通过 userId ，questionId
      * @param userId
@@ -167,22 +181,46 @@ public interface AskService {
      * @param startTime
      * @param endTime
      * @param status 问题 状态
-     * @param sortType 排序类型
+     * @param timeSortType 时间 排序
+     * @param readCountSortType 阅读数 排序
+     * @param answerCountSortType 答案数 排序
      * @param start
      * @param size
      * @return
      */
     List<Question> searchQuestionByUser(List<Long> userIdList, long startTime, long endTime, byte status, byte timeSortType, byte readCountSortType, byte answerCountSortType, int start, int size);
+
+    /**
+     * 通过 id list 查询 问题 总个数
+     * @param userIdList 创建问题者 list
+     * @param startTime
+     * @param endTime
+     * @param status 问题 状态
+     * @return
+     */
+    long countQuestionByUser(List<Long> userIdList, long startTime, long endTime, byte status);
     /**
      * 通过问题标题 模糊查询 问题
      * @param keyword 标题关键字
      * @param startTime
      * @param endTime
      * @param status 问题 状态
-     * @param sortType 排序类型
+     * @param timeSortType 时间 排序
+     * @param readCountSortType 阅读数 排序
+     * @param answerCountSortType 答案数 排序
      * @param start
      * @param size
      * @return
      */
     List<Question> searchQuestionByTitle(String keyword, long startTime, long endTime, byte status, byte timeSortType, byte readCountSortType, byte answerCountSortType, int start, int size);
+
+    /**
+     * 通过问题标题 模糊查询 问题 总个数
+     * @param keyword 标题关键字
+     * @param startTime
+     * @param endTime
+     * @param status 问题 状态
+     * @return
+     */
+    long countQuestionByTitle(String keyword, long startTime, long endTime, byte status);
 }

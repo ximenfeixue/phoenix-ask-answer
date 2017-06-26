@@ -148,8 +148,7 @@ public class AnswerMongoDaoImpl implements AnswerMongoDao {
         if (userId < 0)
             throw new IllegalArgumentException("userId < 0 param is error");
         Query query = new Query(Criteria.where("answererId").is(userId));
-
-        Aggregation aggregation = Aggregation.newAggregation(Aggregation.match(new Criteria()), Aggregation.unwind("subStateList"), Aggregation.group("$subStateList.answererId"));
+        /*Aggregation aggregation = Aggregation.newAggregation(Aggregation.match(new Criteria()), Aggregation.unwind("subStateList"), Aggregation.group("$subStateList.answererId"));
         AggregationResults<Answer> results = mongoTemplate.aggregate(aggregation, Constant.Collection.ANSWER, Answer.class);
         BasicDBList rawResults = (BasicDBList)results.getRawResults().get("result");
         List<Long> list = new ArrayList<Long>(rawResults.size());
@@ -157,7 +156,7 @@ public class AnswerMongoDaoImpl implements AnswerMongoDao {
             BasicDBObject obj = (BasicDBObject) rawResults.get(i);
             long answererId = obj.getLong("$subStateList.answererId");
             list.add(answererId);
-        }
+        }*/
         return mongoTemplate.count(query, Answer.class, Constant.Collection.ANSWER);
     }
 
@@ -208,6 +207,17 @@ public class AnswerMongoDaoImpl implements AnswerMongoDao {
         return search(query, startTime, endTime, timeSortType, praiseCountSortType, start, size);
     }
 
+    public long countAnswerByUser(List<Long> list, long startTime, long endTime) {
+
+        Query query = new Query(Criteria.where(Constant.ANSWERER_ID).in(list));
+        // 问题 未被删除 的答案
+        query.addCriteria(Criteria.where("status").is(0));
+        if (startTime > 0 && endTime > 0) {
+            query.addCriteria(Criteria.where(Constant.CREATE_TIME).gte(startTime).lte(endTime));
+        }
+        return mongoTemplate.count(query, Answer.class, Constant.Collection.ANSWER);
+    }
+
     public List<Answer> searchAnswerByQuestionIdList(List<Long> questionIdList, long startTime, long endTime, byte timeSortType, byte praiseCountSortType, int start, int size) throws Exception {
 
         Query query = new Query(Criteria.where("questionId").in(questionIdList));
@@ -215,11 +225,33 @@ public class AnswerMongoDaoImpl implements AnswerMongoDao {
         return search(query, startTime, endTime, timeSortType, praiseCountSortType, start, size);
     }
 
+    public long countAnswerByQuestionIdList(List<Long> questionIdList, long startTime, long endTime) {
+
+        Query query = new Query(Criteria.where("questionId").in(questionIdList));
+        // 问题 未被删除 的答案
+        query.addCriteria(Criteria.where("status").is(0));
+        if (startTime > 0 && endTime > 0) {
+            query.addCriteria(Criteria.where(Constant.CREATE_TIME).gte(startTime).lte(endTime));
+        }
+        return mongoTemplate.count(query, Answer.class, Constant.Collection.ANSWER);
+    }
+
     public List<Answer> searchAnswerByContent(String keyword, long startTime, long endTime, byte timeSortType, byte praiseCountSortType, int start, int size) throws Exception {
 
         Query query = new Query(Criteria.where("content").regex(".*?" + keyword + ".*"));
 
         return search(query, startTime, endTime, timeSortType, praiseCountSortType, start, size);
+    }
+
+    public long countAnswerByContent(String keyword, long startTime, long endTime) {
+
+        Query query = new Query(Criteria.where("content").regex(".*?" + keyword + ".*"));
+        // 问题 未被删除 的答案
+        query.addCriteria(Criteria.where("status").is(0));
+        if (startTime > 0 && endTime > 0) {
+            query.addCriteria(Criteria.where(Constant.CREATE_TIME).gte(startTime).lte(endTime));
+        }
+        return mongoTemplate.count(query, Answer.class, Constant.Collection.ANSWER);
     }
 
     public boolean batchUpdateAnswerStatus(long questionId) {
@@ -245,6 +277,8 @@ public class AnswerMongoDaoImpl implements AnswerMongoDao {
 
     private List<Answer> search(Query query, long startTime, long endTime, byte timeSortType, byte praiseCountSortType, int start, int size) {
 
+        // 未删除问题 的答案
+        query.addCriteria(Criteria.where("status").is(0));
         if (startTime > 0 && endTime > 0) {
             query.addCriteria(Criteria.where(Constant.CREATE_TIME).gte(startTime).lte(endTime));
         }

@@ -44,9 +44,15 @@ public interface AnswerService {
 
     List<Answer> searchAnswerByUser(List<Long> list, long startTime, long endTime, byte timeSortType, byte praiseCountSortType, int start, int size) throws Exception;
 
+    long countAnswerByUser(List<Long> list, long startTime, long endTime);
+
     List<Answer> searchAnswerByQuestionIdList(List<Long> list, long startTime, long endTime, byte timeSortType, byte praiseCountSortType, int start, int size) throws Exception;
 
+    long countAnswerByQuestionIdList(List<Long> list, long startTime, long endTime);
+
     List<Answer> searchAnswerByContent(String keyword, long startTime, long endTime, byte timeSortType, byte praiseCountSortType, int start, int size) throws Exception;
+
+    long countAnswerByContent(String keyword, long startTime, long endTime);
 
     boolean batchUpdateAnswerStatus(long questionId);
 

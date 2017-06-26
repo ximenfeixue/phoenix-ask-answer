@@ -95,6 +95,12 @@ public class AskServiceImpl implements AskService {
     }
 
     @Override
+    public long countQuestionByUId(long userId) {
+
+        return askMongoDao.countQuestionByUId(userId);
+    }
+
+    @Override
     public InterfaceResult addCollect(QuestionCollect collect) {
 
         QuestionCollect saveCollect = null;
@@ -137,6 +143,12 @@ public class AskServiceImpl implements AskService {
     public List<QuestionCollect> getCollectByUId(long userId, int start, int size) throws Exception {
 
         return askMongoDao.getCollectByUId(userId, start, size);
+    }
+
+    @Override
+    public long countQuestionCollectByUId(long userId) {
+
+        return askMongoDao.countQuestionCollectByUId(userId);
     }
 
     @Override
@@ -244,8 +256,20 @@ public class AskServiceImpl implements AskService {
     }
 
     @Override
+    public long countQuestionByUser(List<Long> userIdList, long startTime, long endTime, byte status) {
+
+        return askMongoDao.countQuestionByUser(userIdList, startTime, endTime, status);
+    }
+
+    @Override
     public List<Question> searchQuestionByTitle(String keyword, long startTime, long endTime, byte status, byte timeSortType, byte readCountSortType, byte answerCountSortType, int start, int size) {
 
         return askMongoDao.searchQuestionByTitle(keyword, startTime, endTime, status, timeSortType, readCountSortType, answerCountSortType, start, size);
+    }
+
+    @Override
+    public long countQuestionByTitle(String keyword, long startTime, long endTime, byte status) {
+
+        return askMongoDao.countQuestionByTitle(keyword, startTime, endTime, status);
     }
 }

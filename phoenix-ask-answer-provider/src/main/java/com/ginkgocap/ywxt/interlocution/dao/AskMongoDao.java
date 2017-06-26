@@ -26,6 +26,8 @@ public interface AskMongoDao {
 
     List<Question> getQuestionByUId(long userId, int start, int size) throws Exception;
 
+    long countQuestionByUId(long userId);
+
     QuestionCollect addCollect(QuestionCollect collect) throws Exception;
 
     boolean deleteCollect(long questionId, long userId) throws Exception;
@@ -33,6 +35,8 @@ public interface AskMongoDao {
     QuestionReport addReport(QuestionReport report) throws Exception;
 
     List<QuestionCollect> getCollectByUId(long userId, int start, int size) throws Exception;
+
+    long countQuestionCollectByUId(long userId);
 
     QuestionCollect getCollectByUIdQuestionId(long userId, long questionId) throws Exception;
 
@@ -54,5 +58,9 @@ public interface AskMongoDao {
 
     List<Question> searchQuestionByUser(List<Long> userIdList, long startTime, long endTime, byte status, byte timeSortType, byte readCountSortType, byte answerCountSortType, int start, int size);
 
+    long countQuestionByUser(List<Long> userIdList, long startTime, long endTime, byte status);
+
     List<Question> searchQuestionByTitle(String keyword, long startTime, long endTime, byte status, byte timeSortType, byte readCountSortType, byte answerCountSortType, int start, int size);
+
+    long countQuestionByTitle(String keyword, long startTime, long endTime, byte status);
 }

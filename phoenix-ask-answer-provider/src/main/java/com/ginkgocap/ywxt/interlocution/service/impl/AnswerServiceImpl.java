@@ -168,15 +168,33 @@ public class AnswerServiceImpl implements AnswerService {
     }
 
     @Override
+    public long countAnswerByUser(List<Long> list, long startTime, long endTime) {
+
+        return answerMongoDao.countAnswerByUser(list, startTime, endTime);
+    }
+
+    @Override
     public List<Answer> searchAnswerByQuestionIdList(List<Long> list, long startTime, long endTime, byte timeSortType, byte praiseCountSortType, int start, int size) throws Exception {
 
         return answerMongoDao.searchAnswerByQuestionIdList(list, startTime, endTime, timeSortType, praiseCountSortType, start, size);
     }
 
     @Override
+    public long countAnswerByQuestionIdList(List<Long> list, long startTime, long endTime) {
+
+        return answerMongoDao.countAnswerByQuestionIdList(list, startTime, endTime);
+    }
+
+    @Override
     public List<Answer> searchAnswerByContent(String keyword, long startTime, long endTime, byte timeSortType, byte praiseCountSortType, int start, int size) throws Exception {
 
         return answerMongoDao.searchAnswerByContent(keyword, startTime, endTime, timeSortType, praiseCountSortType, start, size);
+    }
+
+    @Override
+    public long countAnswerByContent(String keyword, long startTime, long endTime) {
+
+        return answerMongoDao.countAnswerByContent(keyword, startTime, endTime);
     }
 
     @Override

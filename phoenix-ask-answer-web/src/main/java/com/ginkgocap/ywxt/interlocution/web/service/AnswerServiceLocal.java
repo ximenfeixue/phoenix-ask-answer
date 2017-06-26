@@ -9,6 +9,7 @@ import com.ginkgocap.ywxt.interlocution.web.controller.BaseController;
 import com.gintong.frame.util.dto.CommonResultCode;
 import com.gintong.frame.util.dto.InterfaceResult;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.map.HashedMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.mongodb.core.query.Query;
@@ -16,7 +17,9 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by Wang fei on 2017/6/5.
@@ -67,6 +70,7 @@ public class AnswerServiceLocal extends BaseController{
         } catch (Exception e) {
             logger.error("invoke answer service failed！ please check service");
         }
+        // 置顶后 更新 问题表中 topAnswer
         if ("0".equals(result.getNotification().getNotifCode())) {
             Question question = null;
             try {
@@ -238,16 +242,17 @@ public class AnswerServiceLocal extends BaseController{
      * byte timeSortType, byte readCountSortType, byte answerCountSortType, int start, int size
      * @return
      */
-    public List<Answer> searchAnswerByQuestionTitle(String keyword, long startTime, long endTime, byte timeSortType, byte praiseCountSortType, int start, int size) {
+    public Map<String, Object> searchAnswerByQuestionTitle(String keyword, long startTime, long endTime, byte timeSortType, byte praiseCountSortType, int start, int size) {
 
+        Map<String, Object> map = new HashMap<String, Object>(2);
         List<Question> questionList = null;
         List<Answer> answerList = null;
         List<Long> list = null;
+        long count = 0;
         try {
             questionList = askService.searchQuestionByTitle(keyword, 0, 0, (byte) -1, (byte) -1, (byte) -1, (byte) -1, -1, 0);
         } catch (Exception e) {
             logger.error("invoke ask service failed! method : [ searchQuestionByTitle ]");
-            return null;
         }
         if (CollectionUtils.isNotEmpty(questionList)) {
             list = new ArrayList<Long>(questionList.size());
@@ -264,6 +269,15 @@ public class AnswerServiceLocal extends BaseController{
         } catch (Exception e) {
             logger.error("invoke answer service failed! method : [ searchAnswerByQuestionIdList ]" + e.getMessage());
         }
-        return answerList;
+        if (CollectionUtils.isNotEmpty(answerList)) {
+            try {
+                count = answerService.countAnswerByQuestionIdList(list, startTime, endTime);
+            } catch (Exception e) {
+                logger.error("invoke answer service failed! method : [ countAnswerByQuestionIdList ]");
+            }
+        }
+        map.put("answerList", answerList);
+        map.put("total", count);
+        return map;
     }
 }
