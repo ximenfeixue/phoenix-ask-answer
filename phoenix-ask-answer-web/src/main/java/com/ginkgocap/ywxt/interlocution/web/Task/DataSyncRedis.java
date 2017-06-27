@@ -34,7 +34,7 @@ public class DataSyncRedis implements InitializingBean, Runnable{
 
         // 上线 要 打开 线程
         logger.info("data sync start ...");
-        new Thread(this, "fei sync data .... ^-^").start();
+        //new Thread(this, "fei sync data .... ^-^").start();
         logger.info("data sync end ...");
     }
 

@@ -284,6 +284,9 @@ public class AskController extends BaseController{
         if (askAnswerType == 1) {
             try {
                 User otherUser = userService.selectByPrimaryKey(userId);
+                if (otherUser == null) {
+                    return InterfaceResult.getSuccessInterfaceResultInstance(result);
+                }
                 questionHomeList = askServiceLocal.getAnswerByUId(userId, start, size);
                 questionHomeList = convertMyAnswerList(questionHomeList, otherUser, user);
             } catch (Exception e) {

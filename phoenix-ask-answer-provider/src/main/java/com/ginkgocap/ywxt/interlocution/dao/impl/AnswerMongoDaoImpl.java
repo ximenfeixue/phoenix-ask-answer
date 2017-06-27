@@ -148,6 +148,7 @@ public class AnswerMongoDaoImpl implements AnswerMongoDao {
         if (userId < 0)
             throw new IllegalArgumentException("userId < 0 param is error");
         Query query = new Query(Criteria.where("answererId").is(userId));
+        query.addCriteria(Criteria.where("status").is(0));
         /*Aggregation aggregation = Aggregation.newAggregation(Aggregation.match(new Criteria()), Aggregation.unwind("subStateList"), Aggregation.group("$subStateList.answererId"));
         AggregationResults<Answer> results = mongoTemplate.aggregate(aggregation, Constant.Collection.ANSWER, Answer.class);
         BasicDBList rawResults = (BasicDBList)results.getRawResults().get("result");
