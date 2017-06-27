@@ -121,6 +121,7 @@ public class AnswerController extends BaseController{
         answer.setAnswererId(user.getId());
         final short virtual = user.isVirtual() ? (short) 1 : (short) 0;
         answer.setVirtual(virtual);
+        answer.setQuestionTitle(question.getTitle());
         try {
             result = answerService.insert(answer);
         } catch (Exception e) {

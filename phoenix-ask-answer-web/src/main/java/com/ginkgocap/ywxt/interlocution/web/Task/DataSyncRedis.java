@@ -44,7 +44,7 @@ public class DataSyncRedis implements InitializingBean, Runnable{
         try {
             //updateData();
             // 上线 要 打开
-            //updateAnswerData();
+            updateAnswerData();
             setAnswerTitle();
         } catch (Exception e) {
             logger.error("update data failed!");

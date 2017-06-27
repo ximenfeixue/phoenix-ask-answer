@@ -215,7 +215,7 @@ public class AskController extends BaseController{
         } else if (askAnswerType == 1) {
             try {
                 questionHomeList = askServiceLocal.getAnswerByUId(userId, start, size);
-                questionHomeList = convertMyAnswerList(questionHomeList, user);
+                questionHomeList = convertMyAnswerList(questionHomeList, user, null);
             } catch (Exception e) {
                 logger.error("invoke ask service local failed! method : [ getAnswerByUId ] userId : " + userId);
                 return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
@@ -256,6 +256,46 @@ public class AskController extends BaseController{
                 logger.error("");
                 result = InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
             }*/
+        }
+        return result;
+    }
+
+    /**
+     * 查询 其他人 问答
+     * @param request
+     * @param askAnswerType 0:其他人的提问 1：其他人的回答 2：其他人的收藏
+     * @param start 第 0，1，2...页
+     * @param size  每页显示条数
+     * @param userId 要查询 userId
+     * @return
+     */
+    @RequestMapping(value = "/other/{askAnswerType}/{start}/{size}/{userId}", method = RequestMethod.GET)
+    public InterfaceResult getOtherQuestion(HttpServletRequest request, @PathVariable byte askAnswerType,
+                                            @PathVariable int start, @PathVariable int size,
+                                            @PathVariable long userId) {
+
+        InterfaceResult result = null;
+        long count = 0;
+        User user = this.getJTNUser(request);
+        if (user == null) {
+            return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PERMISSION_EXCEPTION);
+        }
+        List<QuestionHome> questionHomeList = null;
+        if (askAnswerType == 1) {
+            try {
+                User otherUser = userService.selectByPrimaryKey(userId);
+                questionHomeList = askServiceLocal.getAnswerByUId(userId, start, size);
+                questionHomeList = convertMyAnswerList(questionHomeList, otherUser, user);
+            } catch (Exception e) {
+                logger.error("invoke ask service local failed! method : [ getAnswerByUId ] userId : " + userId);
+                return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
+            }
+            try {
+                count = answerService.countAnswerByUId(userId);
+            } catch (Exception e) {
+                logger.error("invoke answer service failed! method : [ countAnswerByUId ] userId : " + userId);
+            }
+            result = convertMyAnswerPage(questionHomeList, count, start, size);
         }
         return result;
     }
@@ -487,6 +527,7 @@ public class AskController extends BaseController{
                 answer.setAnswererName(user.getName());
                 answer.setAnswererPicPath(user.getPicPath());
                 boolean existPraise = this.isExistPraise(id, currentUserId);
+                logger.info("answerId = " + id + " userId = " + currentUserId + " existPraise ? " + existPraise);
                 answer.setIsPraise((byte)(existPraise ? 1 : 0));
                 Set<String> praiseUIdSet = this.getPraiseUIdSet(id);
                 if (CollectionUtils.isNotEmpty(praiseUIdSet)) {
@@ -503,7 +544,7 @@ public class AskController extends BaseController{
      * @param user
      * @return
      */
-    private List<QuestionHome> convertMyAnswerList(List<QuestionHome> questionHomeList, User user) {
+    private List<QuestionHome> convertMyAnswerList(List<QuestionHome> questionHomeList, User user, User otherUser) {
 
         if (CollectionUtils.isNotEmpty(questionHomeList)) {
             for (QuestionHome questionHome : questionHomeList) {
@@ -522,8 +563,13 @@ public class AskController extends BaseController{
                 long id = answer.getId();
                 answer.setAnswererName(user.getName());
                 answer.setAnswererPicPath(user.getPicPath());
-                boolean existPraise = this.isExistPraise(id, user.getId());
-                answer.setIsPraise((byte)(existPraise ? 1 : 0));
+                if (otherUser != null) {
+                    boolean existPraise = this.isExistPraise(id, otherUser.getId());
+                    answer.setIsPraise((byte)(existPraise ? 1 : 0));
+                } else {
+                    boolean existPraise = this.isExistPraise(id, user.getId());
+                    answer.setIsPraise((byte)(existPraise ? 1 : 0));
+                }
                 Set<String> praiseUIdSet = this.getPraiseUIdSet(id);
                 if (CollectionUtils.isNotEmpty(praiseUIdSet)) {
                     answer.setPraiseCount(praiseUIdSet.size());
