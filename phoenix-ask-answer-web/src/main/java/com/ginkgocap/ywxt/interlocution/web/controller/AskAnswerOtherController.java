@@ -366,45 +366,32 @@ public class AskAnswerOtherController extends BaseController{
             return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_EXCEPTION);
         }
         if (keyType == 0) {
-            if (StringUtils.isNotBlank(keyword)) {
-                try {
-                    questionList = askService.searchQuestionByTitle(keyword, startTime, endTime, status, timeSortType, readCountSortType, answerCountSortType, start, size);
-                    questionList = convertQuestion(questionList);
-                } catch (Exception e) {
-                    logger.error("invoke ask service failed! method : [ searchQuestion ]");
-                    return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
-                }
-            }
-            if (CollectionUtils.isNotEmpty(questionList)) {
-                try {
-                    count = askService.countQuestionByTitle(keyword, startTime, endTime, status);
-                } catch (Exception e) {
-                    logger.error("invoke ask service failed! method : [ countQuestionByTitle ] ");
-                    return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
-                }
-            }
-            result = convertQuestionPage(count, questionList, start, size);
+            // 默认 问题 查询
+            result = defaultSearchQuestion(keyword, startTime, endTime, status, timeSortType, readCountSortType, answerCountSortType, start, size);
         } else {
             if (StringUtils.isNotBlank(keyword)) {
                 list = returnListId(list, keyword);
-            }
-            if (CollectionUtils.isNotEmpty(list)) {
-                try {
-                    questionList = askService.searchQuestionByUser(list, startTime, endTime, status, timeSortType, readCountSortType, answerCountSortType, start, size);
-                    questionList = convertQuestion(questionList);
-                } catch (Exception e) {
-                    logger.error("invoke ask service failed! method : [ searchQuestionByUser ]");
-                    return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
+                if (CollectionUtils.isNotEmpty(list)) {
+                    try {
+                        questionList = askService.searchQuestionByUser(list, startTime, endTime, status, timeSortType, readCountSortType, answerCountSortType, start, size);
+                        questionList = convertQuestion(questionList);
+                    } catch (Exception e) {
+                        logger.error("invoke ask service failed! method : [ searchQuestionByUser ]");
+                        return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
+                    }
                 }
-            }
-            if (CollectionUtils.isNotEmpty(questionList)) {
-                try {
-                    count = askService.countQuestionByUser(list, startTime, endTime, status);
-                } catch (Exception e) {
-                    logger.error("invoke ask service failed! method : [ countQuestionByUser ]");
+                if (CollectionUtils.isNotEmpty(questionList)) {
+                    try {
+                        count = askService.countQuestionByUser(list, startTime, endTime, status);
+                    } catch (Exception e) {
+                        logger.error("invoke ask service failed! method : [ countQuestionByUser ]");
+                    }
+                    result = convertQuestionPage(count, questionList, start, size);
                 }
+            } else {
+                // 默认 问题 查询
+                result = defaultSearchQuestion(keyword, startTime, endTime, status, timeSortType, readCountSortType, answerCountSortType, start, size);
             }
-            result = convertQuestionPage(count, questionList, start, size);
         }
         return result;
     }
@@ -452,27 +439,14 @@ public class AskAnswerOtherController extends BaseController{
                     return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
                 }
                 count = (Long) map.get("total");
+                result = convertAnswerPage(count, answerList, start, size);
+            } else {
+                // 默认 查询 回答描述 keyword = null
+                result = defaultSearchAnswer(keyword, startTime, endTime, timeSortType, praiseCountSortType, start, size);
             }
-            result = convertAnswerPage(count, answerList, start, size);
         } else if (keyType == 1) {
-            if (StringUtils.isNotBlank(keyword)) {
-                try {
-                    answerList = answerService.searchAnswerByContent(keyword, startTime, endTime, timeSortType, praiseCountSortType, start, size);
-                    answerList = convertAnswer(answerList);
-                } catch (Exception e) {
-                    logger.error("invoke answer service failed! method : [ searchAnswerByContent ]");
-                    return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
-                }
-            }
-            if (CollectionUtils.isNotEmpty(answerList)) {
-                try {
-                    count = answerService.countAnswerByContent(keyword, startTime, endTime);
-                } catch (Exception e) {
-                    logger.error("invoke answer service failed! method : [ countAnswerByContent ]");
-                    return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
-                }
-            }
-            result = convertAnswerPage(count, answerList, start, size);
+            // 默认 查询  回答描述
+            result = defaultSearchAnswer(keyword, startTime, endTime, timeSortType, praiseCountSortType, start, size);
         } else if (keyType == 2) {
             if (StringUtils.isNotBlank(keyword)) {
                 list = returnListId(list, keyword);
@@ -493,10 +467,60 @@ public class AskAnswerOtherController extends BaseController{
                         return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
                     }
                 }
+                result = convertAnswerPage(count, answerList, start, size);
+            } else {
+                result = defaultSearchAnswer(keyword, startTime, endTime, timeSortType, praiseCountSortType, start, size);
             }
-            result = convertAnswerPage(count, answerList, start, size);
         } else {}
 
+        return result;
+    }
+
+    private InterfaceResult defaultSearchQuestion(String keyword, long startTime, long endTime, byte status, byte timeSortType, byte readCountSortType, byte answerCountSortType, int start, int size) {
+
+        InterfaceResult result;
+        List<Question> questionList = null;
+        long count = 0;
+        try {
+            questionList = askService.searchQuestionByTitle(keyword, startTime, endTime, status, timeSortType, readCountSortType, answerCountSortType, start, size);
+            questionList = convertQuestion(questionList);
+        } catch (Exception e) {
+            logger.error("invoke ask service failed! method : [ searchQuestion ]");
+            return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
+        }
+        if (CollectionUtils.isNotEmpty(questionList)) {
+            try {
+                count = askService.countQuestionByTitle(keyword, startTime, endTime, status);
+            } catch (Exception e) {
+                logger.error("invoke ask service failed! method : [ countQuestionByTitle ] ");
+                return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
+            }
+        }
+        result = convertQuestionPage(count, questionList, start, size);
+        return result;
+    }
+
+    private InterfaceResult defaultSearchAnswer(String keyword, long startTime, long endTime, byte timeSortType, byte praiseCountSortType, int start,int size) {
+
+        InterfaceResult result;
+        List<Answer> answerList = null;
+        long count = 0;
+        try {
+            answerList = answerService.searchAnswerByContent(keyword, startTime, endTime, timeSortType, praiseCountSortType, start, size);
+            answerList = convertAnswer(answerList);
+        } catch (Exception e) {
+            logger.error("invoke answer service failed! method : [ searchAnswerByContent ]");
+            return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
+        }
+        if (CollectionUtils.isNotEmpty(answerList)) {
+            try {
+                count = answerService.countAnswerByContent(keyword, startTime, endTime);
+            } catch (Exception e) {
+                logger.error("invoke answer service failed! method : [ countAnswerByContent ]");
+                return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
+            }
+        }
+        result = convertAnswerPage(count, answerList, start, size);
         return result;
     }
 

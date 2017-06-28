@@ -308,14 +308,23 @@ public class AskMongoDaoImpl implements AskMongoDao {
 
     public List<Question> searchQuestionByTitle(String keyword, long startTime, long endTime, byte status, byte timeSortType, byte readCountSortType, byte answerCountSortType, int start, int size) {
 
-        Query query = new Query(Criteria.where("title").regex(".*?" + keyword + ".*"));
-
+        Query query = null;
+        if (keyword != null) {
+            query = new Query(Criteria.where("title").regex(".*?" + keyword + ".*"));
+        } else {
+            query = new Query();
+        }
         return search(query, startTime, endTime, status, timeSortType, readCountSortType, answerCountSortType, start, size);
     }
 
     public long countQuestionByTitle(String keyword, long startTime, long endTime, byte status) {
 
-        Query query = new Query(Criteria.where("title").regex(".*?" + keyword + ".*"));
+        Query query = null;
+        if (keyword != null) {
+            query = new Query(Criteria.where("title").regex(".*?" + keyword + ".*"));
+        } else {
+            query = new Query();
+        }
         if (startTime > 0 && endTime > 0) {
             query.addCriteria(Criteria.where(Constant.CREATE_TIME).gte(startTime).lte(endTime));
         }

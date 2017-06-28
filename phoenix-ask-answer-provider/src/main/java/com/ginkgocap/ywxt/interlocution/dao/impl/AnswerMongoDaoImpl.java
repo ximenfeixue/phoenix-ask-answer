@@ -6,6 +6,7 @@ import com.ginkgocap.ywxt.interlocution.model.Constant;
 import com.ginkgocap.ywxt.interlocution.model.Question;
 import com.ginkgocap.ywxt.interlocution.service.AskAnswerCommonService;
 import com.mongodb.*;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -228,7 +229,12 @@ public class AnswerMongoDaoImpl implements AnswerMongoDao {
 
     public long countAnswerByQuestionIdList(List<Long> questionIdList, long startTime, long endTime) {
 
-        Query query = new Query(Criteria.where("questionId").in(questionIdList));
+        Query query = null;
+        if (CollectionUtils.isNotEmpty(questionIdList)) {
+            query = new Query(Criteria.where("questionId").in(questionIdList));
+        } else {
+            query = new Query();
+        }
         // 问题 未被删除 的答案
         query.addCriteria(Criteria.where("status").is(0));
         if (startTime > 0 && endTime > 0) {
@@ -239,14 +245,23 @@ public class AnswerMongoDaoImpl implements AnswerMongoDao {
 
     public List<Answer> searchAnswerByContent(String keyword, long startTime, long endTime, byte timeSortType, byte praiseCountSortType, int start, int size) throws Exception {
 
-        Query query = new Query(Criteria.where("content").regex(".*?" + keyword + ".*"));
-
+        Query query = null;
+        if (keyword != null) {
+            query = new Query(Criteria.where("content").regex(".*?" + keyword + ".*"));
+        } else {
+            query = new Query();
+        }
         return search(query, startTime, endTime, timeSortType, praiseCountSortType, start, size);
     }
 
     public long countAnswerByContent(String keyword, long startTime, long endTime) {
 
-        Query query = new Query(Criteria.where("content").regex(".*?" + keyword + ".*"));
+        Query query = null;
+        if (keyword != null) {
+            query = new Query(Criteria.where("content").regex(".*?" + keyword + ".*"));
+        } else {
+            query = new Query();
+        }
         // 问题 未被删除 的答案
         query.addCriteria(Criteria.where("status").is(0));
         if (startTime > 0 && endTime > 0) {
