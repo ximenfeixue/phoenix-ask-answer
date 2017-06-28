@@ -389,6 +389,7 @@ public class AskAnswerOtherController extends BaseController{
                     result = convertQuestionPage(count, questionList, start, size);
                 }
             } else {
+                logger.info("keyword: " + keyword);
                 // 默认 问题 查询
                 result = defaultSearchQuestion(keyword, startTime, endTime, status, timeSortType, readCountSortType, answerCountSortType, start, size);
             }
@@ -481,6 +482,7 @@ public class AskAnswerOtherController extends BaseController{
         InterfaceResult result;
         List<Question> questionList = null;
         long count = 0;
+        logger.info("keyword: " + keyword + "null".equals(keyword));
         try {
             questionList = askService.searchQuestionByTitle(keyword, startTime, endTime, status, timeSortType, readCountSortType, answerCountSortType, start, size);
             questionList = convertQuestion(questionList);

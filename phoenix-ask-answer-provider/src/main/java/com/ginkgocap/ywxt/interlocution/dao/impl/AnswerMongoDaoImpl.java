@@ -246,7 +246,7 @@ public class AnswerMongoDaoImpl implements AnswerMongoDao {
     public List<Answer> searchAnswerByContent(String keyword, long startTime, long endTime, byte timeSortType, byte praiseCountSortType, int start, int size) throws Exception {
 
         Query query = null;
-        if (keyword != null) {
+        if (keyword != null && !"null".equals(keyword)) {
             query = new Query(Criteria.where("content").regex(".*?" + keyword + ".*"));
         } else {
             query = new Query();
@@ -257,7 +257,7 @@ public class AnswerMongoDaoImpl implements AnswerMongoDao {
     public long countAnswerByContent(String keyword, long startTime, long endTime) {
 
         Query query = null;
-        if (keyword != null) {
+        if (keyword != null && !"null".equals(keyword)) {
             query = new Query(Criteria.where("content").regex(".*?" + keyword + ".*"));
         } else {
             query = new Query();
