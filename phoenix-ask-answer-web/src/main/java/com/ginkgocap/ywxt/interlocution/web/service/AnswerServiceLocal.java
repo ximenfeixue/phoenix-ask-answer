@@ -70,7 +70,7 @@ public class AnswerServiceLocal extends BaseController{
         } catch (Exception e) {
             logger.error("invoke answer service failed！ please check service");
         }
-        // 置顶后 更新 问题表中 topAnswer
+        // 置顶答案后 更新 问题表中 topAnswer 同时 置顶问题
         if ("0".equals(result.getNotification().getNotifCode())) {
             Question question = null;
             try {
@@ -84,11 +84,11 @@ public class AnswerServiceLocal extends BaseController{
                 result.getNotification().setNotifInfo("当前问题不存在或已删除");
                 return result;
             }
-            PartAnswer topAnswer = question.getTopAnswer();
-            topAnswer = partAnswer;
             Answer resultAnswer = (Answer)result.getResponseData();
-            topAnswer = convertAnswer(resultAnswer);
+            PartAnswer topAnswer = convertAnswer(resultAnswer);
             question.setTopAnswer(topAnswer);
+            // 置顶问题
+            question.setTop((byte) 1);
             try {
                 askService.updateQuestion(question);
             } catch (Exception e) {
