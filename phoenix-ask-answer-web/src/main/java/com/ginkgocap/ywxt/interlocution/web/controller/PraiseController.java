@@ -99,7 +99,6 @@ public class PraiseController extends BaseController{
         praise.setVirtual(virtual);
         try {
             result = praiseService.create(praise);
-
         } catch (Exception e) {
             logger.error("invoke praiseService failed : method :[ create ]");
             return InterfaceResult.getInterfaceResultInstance(CommonResultCode.SYSTEM_EXCEPTION);
@@ -332,6 +331,7 @@ public class PraiseController extends BaseController{
         try {
             topAnswer = question.getTopAnswer();
             if (topAnswer == null) {
+                logger.info("in praise, update question, topAnswer == null, userId = " + userId + "questionId = " + question.getId());
                 topAnswer = convertAnswer(answer);
                 question.setTopAnswer(topAnswer);
                 updateTopQuestion(question);
@@ -345,13 +345,13 @@ public class PraiseController extends BaseController{
                         question.setTopAnswer(topAnswer);
                         updateTopQuestion(question);
                     }
-                } else {
+                } else if (topAnswer.getAnswerId() == answer.getId()) {
                 // 最优答案 是置顶的 只修改 点赞数
-                    int praiseCount = this.addPraiseUId2Redis(answer.getId(), userId);
-                    topAnswer.setPraiseCount(praiseCount);
+                    //int praiseCount = this.addPraiseUId2Redis(answer.getId(), userId);
+                    topAnswer.setPraiseCount(answer.getPraiseCount());
                     question.setTopAnswer(topAnswer);
                     updateTopQuestion(question);
-                }
+                } else {}
             }
         } catch (Exception e) {
             logger.error("invoke ask service failed! method: [updateQuestion]");
