@@ -6,12 +6,17 @@ import com.ginkgocap.ywxt.interlocution.model.Question;
 import com.ginkgocap.ywxt.interlocution.model.QuestionCollect;
 import com.ginkgocap.ywxt.interlocution.model.QuestionReport;
 import com.ginkgocap.ywxt.interlocution.service.AskAnswerCommonService;
+import com.mongodb.BasicDBList;
+import com.mongodb.DBObject;
 import com.mongodb.WriteResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.*;
+import org.springframework.data.mongodb.core.mapreduce.GroupBy;
+import org.springframework.data.mongodb.core.mapreduce.GroupByResults;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
@@ -19,6 +24,7 @@ import org.springframework.stereotype.Repository;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -332,6 +338,25 @@ public class AskMongoDaoImpl implements AskMongoDao {
             query.addCriteria(Criteria.where("disabled").is(status));
         }
         return mongoTemplate.count(query, Question.class, Constant.Collection.QUESTION);
+    }
+    // 未完待续
+    public List getCreateQuestionByUserId(long userId, long startTime, long endTime) {
+
+        Query query = new Query();
+        query.addCriteria(Criteria.where(Constant.USER_ID).is(userId));
+        if (startTime > 0 && endTime > 0) {
+            query.addCriteria(Criteria.where(Constant.CREATE_TIME).gte(startTime).lte(endTime));
+        }
+        GroupOperation groupOperation = Aggregation.group("ad_id", "ad_title").sum("clicknum").as("clicksum");
+
+        GroupBy groupBy = GroupBy.keyFunction(Constant.CREATE_TIME).initialDocument("{count:0}").reduceFunction("function(doc, out){out.count++}")
+                .finalizeFunction("function(out){return out;}");
+        GroupByResults<Question> res = mongoTemplate.group(Constant.Collection.QUESTION, groupBy, Question.class);
+        DBObject obj = res.getRawResults();
+        BasicDBList dbList = (BasicDBList) obj.get("retval");
+
+
+        return null;
     }
 
     private List<Question> search(Query query, long startTime, long endTime, byte status, byte timeSortType, byte readCountSortType, byte answerCountSortType, int start, int size) {

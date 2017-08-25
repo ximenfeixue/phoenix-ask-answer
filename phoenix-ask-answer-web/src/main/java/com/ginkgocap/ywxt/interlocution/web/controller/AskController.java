@@ -526,7 +526,12 @@ public class AskController extends BaseController{
                     continue;
                 long answererId = answer.getAnswererId();
                 long id = answer.getId();
+                logger.info("-----------convertAnswerUserList start ! answererId : " + answererId);
                 User user = userService.selectByPrimaryKey(answererId);
+                if (user == null) {
+                    logger.error("convertAnswerUserList failed ! userId : " + answererId);
+                    continue;
+                }
                 answer.setAnswererName(user.getName());
                 answer.setAnswererPicPath(user.getPicPath());
                 boolean existPraise = this.isExistPraise(id, currentUserId);

@@ -241,7 +241,7 @@ public class AnswerController extends BaseController{
         message.setFromId(user.getId());
         message.setFromName(user.getName());
         message.setPicPath(user.getPicPath());
-        //message.setType(MessageNotifyType.E);
+        //message.setType(MessageNotifyType.EAskAnswer);
         message.setType(16);
         message.setToId(answer.getToId());
         message.setContent(convertToJson(answer.getQuestionId()));

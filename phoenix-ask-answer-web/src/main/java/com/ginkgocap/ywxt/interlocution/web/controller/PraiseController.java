@@ -273,8 +273,8 @@ public class PraiseController extends BaseController{
         message.setFromId(user.getId());
         message.setFromName(user.getName());
         message.setPicPath(user.getPicPath());
-        //message.setType(MessageNotifyType.E);
-        message.setType(17);
+        message.setType(MessageNotifyType.EAskAnswerApprove.value());
+        //message.setType(17);
         message.setToId(praise.getAnswererId());
         message.setContent(convertToJson(praise.getAnswerId(), questionId));
         final short virtual = user.isVirtual() ? (short) 1 : (short) 0;

@@ -63,4 +63,6 @@ public interface AskMongoDao {
     List<Question> searchQuestionByTitle(String keyword, long startTime, long endTime, byte status, byte timeSortType, byte readCountSortType, byte answerCountSortType, int start, int size);
 
     long countQuestionByTitle(String keyword, long startTime, long endTime, byte status);
+
+    List getCreateQuestionByUserId(long userId, long startTime, long endTime);
 }

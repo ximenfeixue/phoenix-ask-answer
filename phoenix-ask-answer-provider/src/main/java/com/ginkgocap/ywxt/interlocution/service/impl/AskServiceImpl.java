@@ -7,11 +7,15 @@ import com.ginkgocap.ywxt.interlocution.model.QuestionReport;
 import com.ginkgocap.ywxt.interlocution.service.AskService;
 import com.gintong.frame.util.dto.CommonResultCode;
 import com.gintong.frame.util.dto.InterfaceResult;
+import org.apache.commons.lang3.time.DateFormatUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -271,5 +275,15 @@ public class AskServiceImpl implements AskService {
     public long countQuestionByTitle(String keyword, long startTime, long endTime, byte status) {
 
         return askMongoDao.countQuestionByTitle(keyword, startTime, endTime, status);
+    }
+
+    public List getCreateQuestionByUserId(long userId, String startTime, String endTime) throws ParseException {
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Date startDate = sdf.parse(startTime);
+        Date endDate = sdf.parse(endTime);
+        long start = startDate.getTime();
+        long end = endDate.getTime();
+        return askMongoDao.getCreateQuestionByUserId(userId, start, end);
     }
 }
