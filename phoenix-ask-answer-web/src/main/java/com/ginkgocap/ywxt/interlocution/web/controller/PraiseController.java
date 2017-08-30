@@ -371,10 +371,12 @@ public class PraiseController extends BaseController{
 
         if (CollectionUtils.isNotEmpty(praiseList)) {
             for (Praise praise : praiseList) {
-                if (praise == null)
+                if (null == praise)
                     continue;
                 long admirerId = praise.getAdmirerId();
                 User user = userService.selectByPrimaryKey(admirerId);
+                if (null == user)
+                    continue;
                 praise.setAdmirerName(user.getName());
                 praise.setAdmirerPicPath(user.getPicPath());
             }
