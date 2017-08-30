@@ -375,8 +375,10 @@ public class PraiseController extends BaseController{
                     continue;
                 long admirerId = praise.getAdmirerId();
                 User user = userService.selectByPrimaryKey(admirerId);
-                if (null == user)
+                if (null == user) {
+                    logger.error("invoke userService selectByPrimaryKey failed! userId = admireId : " + admirerId);
                     continue;
+                }
                 praise.setAdmirerName(user.getName());
                 praise.setAdmirerPicPath(user.getPicPath());
             }
