@@ -456,7 +456,14 @@ public class AskController extends BaseController{
         if (CollectionUtils.isNotEmpty(questionList)) {
             for (Question question : questionList) {
                 long userId = question.getUserId();
-                User user = userService.selectByPrimaryKey(userId);
+                User user = null;
+                try {
+                    user = userService.getUserById(userId);
+                } catch (Exception e) {
+                    logger.error("invoke userService error. userId :{}", userId);
+                }
+                if (user == null)
+                    continue;
                 question.setUserName(user.getName());
                 question.setPicPath(user.getPicPath());
                 question.setVirtual(user.isVirtual() ? (short) 1 : (short) 0);
@@ -464,7 +471,12 @@ public class AskController extends BaseController{
                 if (topAnswer != null) {
                     long answererId = topAnswer.getAnswererId();
                     long answerId = topAnswer.getAnswerId();
-                    User answerer = userService.selectByPrimaryKey(answererId);
+                    User answerer = null;
+                    try {
+                        answerer = userService.getUserById(userId);
+                    } catch (Exception e) {
+                        logger.error("invoke userService error. userId :{}", userId);
+                    }
                     if (answerer == null) {
                         logger.error("invoke userService failed ! method selectByPrimaryKey , userId : [" + answererId + "]");
                     } else {
@@ -562,7 +574,14 @@ public class AskController extends BaseController{
                 if (question == null)
                     continue;
                 long userId = question.getUserId();
-                User qUser = userService.selectByPrimaryKey(userId);
+                User qUser = null;
+                try {
+                    qUser = userService.getUserById(userId);
+                } catch (Exception e) {
+                    logger.error("invoke userService error. userId :{}", userId);
+                }
+                if (qUser == null)
+                    continue;
                 question.setUserName(qUser.getName());
                 question.setPicPath(qUser.getPicPath());
                 Answer answer = questionHome.getAnswer();
@@ -594,7 +613,14 @@ public class AskController extends BaseController{
                 if (collect == null)
                     continue;
                 long ownerId = collect.getOwnerId();
-                User user = userService.selectByPrimaryKey(ownerId);
+                User user = null;
+                try {
+                    user = userService.getUserById(ownerId);
+                } catch (Exception e) {
+                    logger.error("invoke userService error. userId :{}", ownerId);
+                }
+                if (user == null)
+                    continue;
                 collect.setOwnerName(user.getName());
                 collect.setOwnerPicPath(user.getPicPath());
             }
