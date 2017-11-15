@@ -13,7 +13,7 @@ import com.ginkgocap.ywxt.user.service.UserService;
 import com.gintong.frame.util.dto.CommonResultCode;
 import com.gintong.frame.util.dto.InterfaceResult;
 import com.gintong.ywxt.im.model.MessageNotify;
-import com.gintong.ywxt.im.model.MessageNotifyType;
+import com.gintong.ywxt.im.constant.MessageNotifyType;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
