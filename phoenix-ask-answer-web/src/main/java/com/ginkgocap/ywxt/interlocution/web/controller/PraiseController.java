@@ -186,14 +186,14 @@ public class PraiseController extends BaseController{
                 // 删除 redis 中 数据
                 this.removePraiseUId(answerId, userId);
                 Answer answer = answerService.getAnswerById(answerId);
-                List<PartPraise> partPraiseList = answer.getPartPraiseList();
-                partPraiseList = new ArrayList<PartPraise>(3);
+                List<PartPraise> oldPartPraiseList = answer.getPartPraiseList();
+                List<PartPraise> partPraiseList = new ArrayList<PartPraise>(3);
                 List<Praise> praiseList = praiseService.getPartPraiseUser(answerId, 0, 3);
                 if (CollectionUtils.isNotEmpty(praiseList)) {
                     for (Praise praise : praiseList) {
                         if (praise == null)
                             continue;
-                        convertPartPraise(praise, partPraiseList);
+                        convertPartPraise(praise, partPraiseList, oldPartPraiseList);
                     }
                 }
                 answer.setPartPraiseList(partPraiseList);
@@ -394,17 +394,26 @@ public class PraiseController extends BaseController{
         }
     }
 
-    private void convertPartPraise(Praise praise, List<PartPraise> partPraiseList) {
+    private void convertPartPraise(Praise praise, List<PartPraise> partPraiseList, List<PartPraise> oldPartPraiseList) {
 
         PartPraise partPraise = new PartPraise();
         long admirerId = praise.getAdmirerId();
         User admireUser = userService.selectByPrimaryKey(admirerId);
-        partPraise.setAdmirerId(admirerId);
-        partPraise.setAdmirerName(admireUser.getName());
-        partPraise.setAdmirerPicPath(admireUser.getPicPath());
-        final short virtual = admireUser.isVirtual() ? (short) 1 : (short) 0;
-        partPraise.setVirtual(virtual);
-        partPraiseList.add(partPraise);
+        // 当点赞者不存在时，用之前存储的数据，以免展示用户头像和名字为 null
+        if (null == admireUser) {
+            for (PartPraise oldPartPraise : oldPartPraiseList) {
+                if (oldPartPraise.getAdmirerId() == admirerId) {
+                    partPraiseList.add(oldPartPraise);
+                }
+            }
+        } else {
+            partPraise.setAdmirerId(admirerId);
+            partPraise.setAdmirerName(admireUser.getName());
+            partPraise.setAdmirerPicPath(admireUser.getPicPath());
+            final short virtual = admireUser.isVirtual() ? (short) 1 : (short) 0;
+            partPraise.setVirtual(virtual);
+            partPraiseList.add(partPraise);
+        }
     }
 
     private void convertPartPraiseByUser(User user, List<PartPraise> partPraiseList, PartPraise part) {

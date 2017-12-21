@@ -548,7 +548,7 @@ public class AskController extends BaseController{
                 long answererId = answer.getAnswererId();
                 long id = answer.getId();
                 logger.info("-----------convertAnswerUserList start ! answererId : " + answererId);
-                User user = userService.selectByPrimaryKey(answererId);
+                User user = userService.getUserById(answererId);
                 if (user == null) {
                     logger.error("convertAnswerUserList failed ! userId : " + answererId);
                     continue;

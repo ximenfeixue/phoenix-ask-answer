@@ -4,9 +4,7 @@ import com.ginkgocap.parasol.util.JsonUtils;
 import com.ginkgocap.ywxt.interlocution.model.*;
 import com.ginkgocap.ywxt.interlocution.service.AnswerService;
 import com.ginkgocap.ywxt.interlocution.service.AskService;
-import com.ginkgocap.ywxt.interlocution.service.DataSyncService;
 import com.ginkgocap.ywxt.interlocution.utils.AskAnswerJsonUtils;
-import com.ginkgocap.ywxt.interlocution.utils.MyStringUtils;
 import com.ginkgocap.ywxt.interlocution.web.Task.DataSyncTask;
 import com.ginkgocap.ywxt.interlocution.web.service.AnswerServiceLocal;
 import com.ginkgocap.ywxt.track.entity.constant.BusinessModelEnum;
@@ -17,19 +15,15 @@ import com.ginkgocap.ywxt.user.service.UserService;
 import com.gintong.frame.util.dto.CommonResultCode;
 import com.gintong.frame.util.dto.InterfaceResult;
 import com.gintong.ywxt.im.model.MessageNotify;
-import com.gintong.ywxt.im.model.MessageNotifyType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
-import javax.persistence.criteria.CriteriaBuilder;
 import javax.servlet.http.HttpServletRequest;
-import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -102,7 +96,7 @@ public class AnswerController extends BaseController{
         // 回答者类型
         User dbUser = null;
         try {
-            dbUser = userService.selectByPrimaryKey(user.getId());
+            dbUser = userService.getUserById(user.getId());
         } catch (Exception e) {
             logger.error("invoke userService failed !please check userService");
         }
