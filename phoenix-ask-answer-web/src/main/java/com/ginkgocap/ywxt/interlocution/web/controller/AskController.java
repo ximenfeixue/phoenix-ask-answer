@@ -10,6 +10,9 @@ import com.ginkgocap.ywxt.interlocution.utils.AskAnswerJsonUtils;
 import com.ginkgocap.ywxt.interlocution.web.Task.DataSyncTask;
 import com.ginkgocap.ywxt.interlocution.web.service.AskServiceLocal;
 import com.ginkgocap.ywxt.interlocution.web.service.AssociateServiceLocal;
+import com.ginkgocap.ywxt.track.entity.constant.BusinessModelEnum;
+import com.ginkgocap.ywxt.track.entity.constant.ModelFunctionEnum;
+import com.ginkgocap.ywxt.track.entity.util.BusinessTrackUtils;
 import com.ginkgocap.ywxt.user.model.User;
 import com.ginkgocap.ywxt.user.service.UserService;
 import com.gintong.frame.util.Page;
@@ -91,6 +94,9 @@ public class AskController extends BaseController{
                     //return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_DB_OPERATION_EXCEPTION);
                 }
             }
+            // business log
+            BusinessTrackUtils.addTbBusinessTrackLog4AddOpt(logger, TRACK_LOGGER, BusinessModelEnum.BUSINESS_QUESTIONS_ANSWERS.getKey(),
+                    (Long) result.getResponseData(), null, request, user.getId(), user.getName());
         }
         return result;
     }
@@ -165,6 +171,9 @@ public class AskController extends BaseController{
         if (CollectionUtils.isNotEmpty(answerList)) {
             convertAnswerUserList(answerList, userId);
         }
+        // TODO: add track log
+        BusinessTrackUtils.addTbBusinessTrackLog4ViewOpt(logger, TRACK_LOGGER, BusinessModelEnum.BUSINESS_QUESTIONS_ANSWERS.getKey(),
+                questionId, null, request, user.getId(), user.getName());
         result = InterfaceResult.getSuccessInterfaceResultInstance(base);
         jacksonValue = new MappingJacksonValue(result);
         jacksonValue.setFilters(this.assoFilterProvider(Associate.class.getName()));

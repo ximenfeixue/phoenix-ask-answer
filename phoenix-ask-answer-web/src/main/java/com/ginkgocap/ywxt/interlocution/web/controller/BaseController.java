@@ -26,6 +26,8 @@ public abstract class BaseController {
 
 	private final Logger LOGGER = LoggerFactory.getLogger(BaseController.class);
 
+	protected static final Logger TRACK_LOGGER = LoggerFactory.getLogger("trackLog");
+
 	/*@Resource
 	private RedisCacheService redisCacheService;
 */

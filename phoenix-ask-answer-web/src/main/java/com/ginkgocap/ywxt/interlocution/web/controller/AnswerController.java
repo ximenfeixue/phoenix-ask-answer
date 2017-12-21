@@ -4,23 +4,32 @@ import com.ginkgocap.parasol.util.JsonUtils;
 import com.ginkgocap.ywxt.interlocution.model.*;
 import com.ginkgocap.ywxt.interlocution.service.AnswerService;
 import com.ginkgocap.ywxt.interlocution.service.AskService;
+import com.ginkgocap.ywxt.interlocution.service.DataSyncService;
 import com.ginkgocap.ywxt.interlocution.utils.AskAnswerJsonUtils;
+import com.ginkgocap.ywxt.interlocution.utils.MyStringUtils;
 import com.ginkgocap.ywxt.interlocution.web.Task.DataSyncTask;
 import com.ginkgocap.ywxt.interlocution.web.service.AnswerServiceLocal;
+import com.ginkgocap.ywxt.track.entity.constant.BusinessModelEnum;
+import com.ginkgocap.ywxt.track.entity.constant.ModelFunctionEnum;
+import com.ginkgocap.ywxt.track.entity.util.BusinessTrackUtils;
 import com.ginkgocap.ywxt.user.model.User;
 import com.ginkgocap.ywxt.user.service.UserService;
 import com.gintong.frame.util.dto.CommonResultCode;
 import com.gintong.frame.util.dto.InterfaceResult;
 import com.gintong.ywxt.im.model.MessageNotify;
+import com.gintong.ywxt.im.model.MessageNotifyType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import javax.persistence.criteria.CriteriaBuilder;
 import javax.servlet.http.HttpServletRequest;
+import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -124,7 +133,7 @@ public class AnswerController extends BaseController{
         }
 
         if (result.getResponseData() != null && (Long)result.getResponseData() > 0) {
-            // WILL do send message
+            // TODO: send message
             if (user.getId() != answer.getToId()) {
                 MessageNotify message = createMessageNotify(answer, dbUser);
                 dataSyncTask.saveDataNeedSync(new DataSync(0l, message));
@@ -146,6 +155,9 @@ public class AnswerController extends BaseController{
                 logger.error("invoke askService failed! method :[ updateStatusAndAnswerCount ]");
                 return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_DB_OPERATION_EXCEPTION);
             }
+            // TODO: add track log
+            BusinessTrackUtils.addTbBusinessTrackLog4AddOpt(logger, TRACK_LOGGER, BusinessModelEnum.BUSINESS_QUESTIONS_ANSWERS.getKey(),
+                    questionId, ModelFunctionEnum.MODEL_FUNCTION_ADD_ANSWER.getKey(), request, user.getId(), user.getName());
         }
         return result;
     }
