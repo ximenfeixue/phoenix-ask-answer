@@ -9,6 +9,9 @@ import com.ginkgocap.ywxt.interlocution.utils.AskAnswerJsonUtils;
 import com.ginkgocap.ywxt.interlocution.utils.MyStringUtils;
 import com.ginkgocap.ywxt.interlocution.web.Task.DataSyncTask;
 import com.ginkgocap.ywxt.interlocution.web.service.AnswerServiceLocal;
+import com.ginkgocap.ywxt.track.entity.constant.BusinessModelEnum;
+import com.ginkgocap.ywxt.track.entity.constant.ModelFunctionEnum;
+import com.ginkgocap.ywxt.track.entity.util.BusinessTrackUtils;
 import com.ginkgocap.ywxt.user.model.User;
 import com.ginkgocap.ywxt.user.service.UserService;
 import com.gintong.frame.util.dto.CommonResultCode;
@@ -130,7 +133,7 @@ public class AnswerController extends BaseController{
         }
 
         if (result.getResponseData() != null && (Long)result.getResponseData() > 0) {
-            // WILL do send message
+            // TODO: send message
             if (user.getId() != answer.getToId()) {
                 MessageNotify message = createMessageNotify(answer, dbUser);
                 dataSyncTask.saveDataNeedSync(new DataSync(0l, message));
@@ -152,6 +155,9 @@ public class AnswerController extends BaseController{
                 logger.error("invoke askService failed! method :[ updateStatusAndAnswerCount ]");
                 return InterfaceResult.getInterfaceResultInstance(CommonResultCode.PARAMS_DB_OPERATION_EXCEPTION);
             }
+            // TODO: add track log
+            BusinessTrackUtils.addTbBusinessTrackLog4AddOpt(logger, TRACK_LOGGER, BusinessModelEnum.BUSINESS_QUESTIONS_ANSWERS.getKey(),
+                    questionId, ModelFunctionEnum.MODEL_FUNCTION_ADD_ANSWER.getKey(), request, user.getId(), user.getName());
         }
         return result;
     }
