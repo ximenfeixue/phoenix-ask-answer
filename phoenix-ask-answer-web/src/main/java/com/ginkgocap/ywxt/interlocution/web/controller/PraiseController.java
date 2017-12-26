@@ -390,7 +390,7 @@ public class PraiseController extends BaseController{
 
         InterfaceResult result = answerService.updateAnswer(answer);
         if (!"0".equals(result.getNotification().getNotifCode())) {
-            logger.error("update answer failed! please check answerService ,check provider log");
+            logger.error("update answer failed! please check answerService ,check provider log.");
         }
     }
 
