@@ -363,7 +363,7 @@ public class PraiseController extends BaseController{
         // 修改问题 最优答案
         InterfaceResult result = askService.updateQuestion(question);
         if (!"0".equals(result.getNotification().getNotifCode())) {
-            logger.error("update question failed! please check askService, check provider log");
+            logger.error("update question failed! please check askService, check provider log.");
         }
     }
 
