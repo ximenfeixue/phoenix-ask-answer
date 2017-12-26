@@ -374,7 +374,7 @@ public class PraiseController extends BaseController{
                 if (null == praise)
                     continue;
                 long admirerId = praise.getAdmirerId();
-                User user = userService.selectByPrimaryKey(admirerId);
+                User user = userService.getUserById(admirerId);
                 if (null == user) {
                     logger.error("invoke userService selectByPrimaryKey failed! userId = admireId : " + admirerId);
                     continue;
@@ -398,7 +398,7 @@ public class PraiseController extends BaseController{
 
         PartPraise partPraise = new PartPraise();
         long admirerId = praise.getAdmirerId();
-        User admireUser = userService.selectByPrimaryKey(admirerId);
+        User admireUser = userService.getUserById(admirerId);
         // 当点赞者不存在时，用之前存储的数据，以免展示用户头像和名字为 null
         if (null == admireUser) {
             for (PartPraise oldPartPraise : oldPartPraiseList) {
